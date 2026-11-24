@@ -3,6 +3,7 @@ name: action
 on:
   push:
     paths: ['action/**', 'packages/core/src/**', 'packages/laravel/src/**', '.github/workflows/action.yml']
+  workflow_dispatch:
   pull_request:
     paths: ['action/**', 'packages/core/src/**', 'packages/laravel/src/**', '.github/workflows/action.yml']
 

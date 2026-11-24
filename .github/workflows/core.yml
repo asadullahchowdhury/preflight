@@ -3,6 +3,7 @@ name: core
 on:
   push:
     paths: ['packages/core/**', '.github/workflows/core.yml']
+  workflow_dispatch:
   pull_request:
     paths: ['packages/core/**', '.github/workflows/core.yml']
 
