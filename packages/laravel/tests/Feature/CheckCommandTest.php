@@ -130,6 +130,8 @@ it('runs the base migrations and checks only what the branch adds (--base)', fun
         '2026_01_03_000000_create_refunds_table',  // untracked
     ])
         ->and($json['base_migrations'])->toBe(2)
+        ->and($json['migration_files']['2026_01_03_000000_create_refunds_table'])->toEndWith('/database/migrations/2026_01_03_000000_create_refunds_table.php')
+        ->and(is_file($json['migration_files']['2026_01_01_000000_widen_orders_status']))->toBeTrue()
         ->and($json['notes'])->toHaveCount(1)
         ->and($json['notes'][0])->toContain('2024_01_02_000000_create_orders_table already exists on the base branch and was edited')
         ->and($json['severity'])->toBe('danger');

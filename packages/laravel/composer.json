@@ -3,7 +3,14 @@
     "description": "Check Laravel migrations for locking, table-copying MySQL schema changes before they reach production.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["laravel", "mysql", "migrations", "online-ddl", "schema", "ci"],
+    "keywords": [
+        "laravel",
+        "mysql",
+        "migrations",
+        "online-ddl",
+        "schema",
+        "ci"
+    ],
     "require": {
         "php": "^8.2",
         "illuminate/console": "^11.0 || ^12.0 || ^13.0",
@@ -23,7 +30,10 @@
             "type": "path",
             "url": "../core",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "preflight/core": "0.1.x-dev"
+                }
             }
         }
     ],

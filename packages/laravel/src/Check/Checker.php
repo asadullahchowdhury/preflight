@@ -89,6 +89,7 @@ final class Checker
         $statements = [];
         $labels = [];
         $analysed = [];
+        $files = [];
         foreach ($targets as $name => $path) {
             $connectionName = $this->migrator->connectionFor($path);
             if ($connectionName !== null && $connectionName !== $connection->getName()) {
@@ -103,6 +104,7 @@ final class Checker
             }
 
             $analysed[] = $name;
+            $files[$name] = $path;
             foreach ($this->migrator->pretend($path) as $sql) {
                 $count = count(TokenList::statements($sql));
                 for ($i = 0; $i < $count; $i++) {
@@ -120,7 +122,7 @@ final class Checker
 
         $report = $this->analyzer->analyze($statements, $server, $snapshot, $stats?->toStatsSet());
 
-        return new CheckResult($report, $analysed, $labels, $notes, $baseMigrations, $connectedVersion);
+        return new CheckResult($report, $analysed, $labels, $notes, $baseMigrations, $connectedVersion, $files);
     }
 
     /**

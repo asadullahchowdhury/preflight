@@ -14,6 +14,7 @@ final class CheckResult
      * @param  array<int, string>  $labels  statement index => migration name
      * @param  list<string>  $notes  things Preflight could not analyse, for the reader
      * @param  list<string>  $baseMigrations  migrations run first to build the "before" schema
+     * @param  array<string, string>  $files  migration name => absolute file path
      */
     public function __construct(
         public readonly Report $report,
@@ -22,6 +23,7 @@ final class CheckResult
         public readonly array $notes,
         public readonly array $baseMigrations,
         public readonly string $connectedVersion,
+        public readonly array $files = [],
     ) {}
 
     public function sources(): Sources
@@ -46,6 +48,7 @@ final class CheckResult
 
         return [
             'migrations' => $this->migrations,
+            'migration_files' => array_map(static fn (string $path) => str_replace('\\', '/', (string) (realpath($path) ?: $path)), $this->files),
             'base_migrations' => count($this->baseMigrations),
             'connected_server_version' => $this->connectedVersion,
             'notes' => $this->notes,

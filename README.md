@@ -10,7 +10,7 @@ MVP scope: **Laravel + MySQL 8**, delivered as a GitHub check and PR comment. Th
 |---|---|---|---|
 | [`packages/core`](packages/core) | Framework-agnostic PHP engine: SQL parsing, schema snapshot, MySQL online-DDL rules, duration estimates | MIT (planned) | **M1: done** |
 | [`packages/laravel`](packages/laravel) | Laravel package: `php artisan preflight:check`, `preflight:stats` | MIT (planned) | **M2: done** |
-| `action/` | GitHub composite action (free tier: static verdict as a PR comment) | MIT (planned) | M3 |
+| [`action/`](action) | GitHub composite action (free tier): PR comment, annotations, job summary, fail-on | MIT (planned) | **M3: done** (not yet run on GitHub) |
 | `apps/cloud/` | Laravel + Inertia React SaaS: GitHub App, size-aware verdicts, dashboard | private | M4+ |
 
 This is one private monorepo for now. The open-source packages get published later as read-only mirrors via `git subtree split`.

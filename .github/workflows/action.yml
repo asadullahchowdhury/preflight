@@ -1,0 +1,75 @@
+name: action
+
+on:
+  push:
+    paths: ['action/**', 'packages/core/src/**', 'packages/laravel/src/**', '.github/workflows/action.yml']
+  pull_request:
+    paths: ['action/**', 'packages/core/src/**', 'packages/laravel/src/**', '.github/workflows/action.yml']
+
+# End to end: a fresh Laravel app whose feature branch adds risky migrations, checked by `uses: ./action`.
+jobs:
+  e2e:
+    name: Action · MySQL ${{ matrix.mysql }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mysql: ['8.0.36', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+          coverage: none
+      - name: Build the test app
+        run: bash action/tests/make-app.sh "$RUNNER_TEMP/app"
+
+      - name: Preflight (report only)
+        id: report
+        uses: ./action
+        with:
+          working-directory: ${{ runner.temp }}/app
+          base: main
+          mysql-version: ${{ matrix.mysql }}
+          comment: never
+          fail-on: never
+
+      - name: The report found the risky statements
+        env:
+          SEVERITY: ${{ steps.report.outputs.severity }}
+          DANGER: ${{ steps.report.outputs.danger-count }}
+          MIGRATIONS: ${{ steps.report.outputs.migrations }}
+          JSON: ${{ steps.report.outputs.json-file }}
+          # The database container the action started.
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '33306'
+          DB_DATABASE: preflight
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+        working-directory: ${{ runner.temp }}/app
+        run: |
+          set -x
+          test "$SEVERITY" = danger
+          test "$DANGER" -ge 3
+          test "$MIGRATIONS" = 2
+          jq -e '.statements[] | select(.table == "users" and .algorithm == "COPY")' "$JSON" > /dev/null
+          # The base migrations ran; the migrations under review did not.
+          php artisan migrate:status | tee /dev/stderr | grep -E '0001_01_01_000000_create_users_table .*Ran'
+          php artisan migrate:status | grep -E '2026_11_24_000002_create_teams_table .*Pending'
+
+      - name: Preflight (fail-on danger)
+        id: gate
+        continue-on-error: true
+        uses: ./action
+        with:
+          working-directory: ${{ runner.temp }}/app
+          base: main
+          mysql-version: ${{ matrix.mysql }}
+          comment: never
+
+      - name: The gate failed the job
+        env:
+          OUTCOME: ${{ steps.gate.outcome }}
+        run: test "$OUTCOME" = failure

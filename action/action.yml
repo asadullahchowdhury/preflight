@@ -1,0 +1,117 @@
+name: Preflight
+description: Flags Laravel migrations that lock or copy MySQL tables, as a PR comment, annotations and a job summary.
+author: Preflight
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  mysql-version:
+    description: >-
+      MySQL version production runs, e.g. "8.0.36" or "8.4". The action starts this version in Docker to build the
+      schema, and a full x.y.z version is also used for the analysis.
+    default: '8.0'
+  start-mysql:
+    description: Start a throwaway MySQL container. Set to "false" to use a database your job already provides (DB_* env).
+    default: 'true'
+  base:
+    description: Git ref the branch is compared with. Default is the PR's base branch, or the previous commit on push.
+    default: ''
+  working-directory:
+    description: Directory of the Laravel app.
+    default: '.'
+  php-version:
+    description: Set up this PHP version first (shivammathur/setup-php). Leave empty if PHP is already set up.
+    default: ''
+  composer-install:
+    description: Run "composer install" when vendor/ is missing.
+    default: 'true'
+  stats-file:
+    description: Production table sizes from "php artisan preflight:stats", for duration estimates.
+    default: ''
+  comment:
+    description: >-
+      PR comment: "auto" posts when there is something to flag and keeps an existing comment up to date,
+      "always" always posts, "never" only writes the job summary.
+    default: 'auto'
+  fail-on:
+    description: Fail the job at this severity, "danger", "warn" or "never".
+    default: 'danger'
+  annotations:
+    description: Annotate risky migration files in the PR diff.
+    default: 'true'
+  github-token:
+    description: Token for the PR comment. Needs pull-requests write permission.
+    default: ${{ github.token }}
+
+outputs:
+  severity:
+    description: Overall severity, "info", "warn" or "danger".
+    value: ${{ steps.check.outputs.severity }}
+  danger-count:
+    description: Number of statements rated danger.
+    value: ${{ steps.check.outputs.danger-count }}
+  warn-count:
+    description: Number of statements rated warn.
+    value: ${{ steps.check.outputs.warn-count }}
+  migrations:
+    description: Number of migrations checked.
+    value: ${{ steps.check.outputs.migrations }}
+  markdown-file:
+    description: Path of the markdown report.
+    value: ${{ steps.check.outputs.markdown-file }}
+  json-file:
+    description: Path of the JSON report.
+    value: ${{ steps.check.outputs.json-file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up PHP
+      if: inputs.php-version != ''
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        extensions: pdo_mysql
+        coverage: none
+
+    - name: Start MySQL ${{ inputs.mysql-version }}
+      id: mysql
+      if: inputs.start-mysql == 'true'
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/start-mysql.sh"
+      env:
+        PREFLIGHT_MYSQL_VERSION: ${{ inputs.mysql-version }}
+
+    - name: Check migrations
+      id: check
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/check.sh"
+      env:
+        PREFLIGHT_MYSQL_VERSION: ${{ inputs.mysql-version }}
+        PREFLIGHT_DB_PORT: ${{ steps.mysql.outputs.port }}
+        PREFLIGHT_BASE: ${{ inputs.base }}
+        PREFLIGHT_BASE_REF: ${{ github.base_ref }}
+        PREFLIGHT_BEFORE: ${{ github.event.before }}
+        PREFLIGHT_STATS_FILE: ${{ inputs.stats-file }}
+        PREFLIGHT_COMPOSER_INSTALL: ${{ inputs.composer-install }}
+        PREFLIGHT_ANNOTATIONS: ${{ inputs.annotations }}
+
+    - name: Comment on the pull request
+      if: always() && steps.check.outputs.markdown-file != '' && inputs.comment != 'never' && github.event.pull_request
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/comment.sh"
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PREFLIGHT_COMMENT: ${{ inputs.comment }}
+        PREFLIGHT_PR: ${{ github.event.pull_request.number }}
+        PREFLIGHT_SEVERITY: ${{ steps.check.outputs.severity }}
+        PREFLIGHT_MARKDOWN: ${{ steps.check.outputs.markdown-file }}
+
+    - name: Enforce fail-on
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/enforce.sh"
+      env:
+        PREFLIGHT_FAIL_ON: ${{ inputs.fail-on }}
+        PREFLIGHT_SEVERITY: ${{ steps.check.outputs.severity }}
