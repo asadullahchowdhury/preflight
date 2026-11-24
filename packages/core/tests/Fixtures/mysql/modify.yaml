@@ -1,0 +1,129 @@
+# MODIFY / CHANGE COLUMN, as produced by Laravel's ->change() (which restates the full definition).
+
+- name: restating the same definition is instant
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(20) not null default 'new'
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, lock: NONE, rebuild: false, severity: info }
+
+- name: changing only the default is instant
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(20) not null default 'pending'
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, lock: NONE, rebuild: false, severity: info }
+
+- name: changing only the comment is instant
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) null comment 'changed'
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, severity: info }
+
+- name: laravel change() dropping a comment is instant
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) null
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, severity: info }
+
+- name: adding ON UPDATE is instant
+  schema: orders
+  sql: alter table `orders` modify `ts` timestamp null on update CURRENT_TIMESTAMP
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, severity: info }
+
+- name: widening varchar within the same length-byte size is in place, metadata only
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(60) not null default 'new'
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: widening varchar across 255 bytes copies the table
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(100) not null default 'new'
+  expect:
+    - { rule: modify-column, algorithm: COPY, lock: SHARED, rebuild: true, severity: danger }
+
+- name: widening a varchar that already uses 2 length bytes is in place
+  schema: orders
+  sql: alter table `orders` modify `email` varchar(255) null
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: shrinking a varchar copies the table
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(10) not null default 'new'
+  expect:
+    - { rule: modify-column, algorithm: COPY, lock: SHARED, rebuild: true, severity: danger }
+
+- name: int to bigint copies the table
+  schema: orders
+  sql: alter table `orders` modify `qty` bigint not null default '0'
+  expect:
+    - { rule: modify-column, algorithm: COPY, lock: SHARED, rebuild: true, severity: danger }
+
+- name: char length change copies the table
+  schema: orders
+  sql: alter table `orders` modify `code` char(8) null
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+
+- name: NULL to NOT NULL rebuilds in place
+  schema: orders
+  sql: alter table `orders` modify `email` varchar(191) not null
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: NOT NULL to NULL rebuilds in place
+  schema: orders
+  sql: alter table `orders` modify `status` varchar(20) null default 'new'
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: appending an enum member is instant
+  schema: orders
+  sql: alter table `orders` modify `kind` enum('a', 'b', 'c') not null default 'a'
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, lock: NONE, rebuild: false, severity: info }
+
+- name: reordering enum members copies the table
+  schema: orders
+  sql: alter table `orders` modify `kind` enum('b', 'a') not null default 'a'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+
+- name: changing a column character set copies the table
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) character set latin1 null comment 'c'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+
+- name: changing collation of a non-indexed column is in place
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) collate utf8mb4_bin null comment 'c'
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: changing collation of an indexed column copies the table
+  schema: orders
+  sql: alter table `orders` modify `email` varchar(191) collate utf8mb4_bin null
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+
+- name: moving a column rebuilds in place
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) null comment 'c' after `id`
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: change with rename and same definition is instant
+  schema: orders
+  sql: alter table `orders` change `note` `remark` varchar(100) null comment 'c'
+  expect:
+    - { rule: modify-column, algorithm: INSTANT, severity: warn }
+
+- name: modify on a table missing from the snapshot cannot be judged
+  schema: orders
+  sql: alter table `invoices` modify `amount` decimal(12,2) not null
+  oracle: false
+  expect:
+    - { rule: modify-column, severity: warn }
+  advisories: [table-not-in-snapshot, mdl-wait]

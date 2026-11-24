@@ -1,0 +1,62 @@
+- name: engine=InnoDB is a null rebuild
+  schema: orders
+  sql: alter table `orders` engine = InnoDB
+  expect:
+    - { rule: table-engine, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: convert to character set copies the table
+  schema: orders
+  sql: alter table `orders` convert to character set utf8mb4 collate utf8mb4_0900_ai_ci
+  expect:
+    - { rule: convert-charset, algorithm: COPY, lock: SHARED, rebuild: true, severity: danger }
+
+- name: default charset only is metadata
+  schema: orders
+  sql: alter table `orders` default charset = latin1
+  expect:
+    - { rule: table-option, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: row format change rebuilds in place
+  schema: orders
+  sql: alter table `orders` row_format = compact
+  expect:
+    - { rule: table-option, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: table comment is metadata
+  schema: orders
+  sql: alter table `orders` comment = 'Customer orders'
+  expect:
+    - { rule: table-option, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: auto_increment value is metadata
+  schema: orders
+  sql: alter table `orders` auto_increment = 1000
+  expect:
+    - { rule: table-option, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: alter table rename is instant but breaks code
+  schema: orders
+  sql: alter table `orders` rename to `purchase_orders`
+  expect:
+    - { rule: rename-table, algorithm: INSTANT, lock: NONE, rebuild: false, severity: warn }
+
+- name: rename table statement
+  schema: orders
+  oracle: false
+  sql: rename table `orders` to `purchase_orders`
+  expect:
+    - { rule: rename-table, severity: warn }
+
+- name: drop table warns about data loss
+  schema: orders
+  oracle: false
+  sql: drop table if exists `orders`
+  expect:
+    - { rule: drop-table, severity: warn }
+
+- name: truncate warns
+  schema: orders
+  oracle: false
+  sql: truncate table `orders`
+  expect:
+    - { rule: truncate-table, severity: warn }

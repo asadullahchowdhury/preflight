@@ -1,0 +1,51 @@
+# With production table sizes, severity follows the estimated duration.
+
+- name: copy on a tiny table is fine
+  schema: orders
+  oracle: false
+  stats: { orders: { rows: 1200, data_bytes: 1572864, index_bytes: 524288 } }
+  sql: alter table `orders` modify `qty` bigint not null default '0'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: info }
+  estimate: { max_below: 1 }
+
+- name: copy on a medium table warns
+  schema: orders
+  oracle: false
+  stats: { orders: { rows: 80000, data_bytes: 52428800, index_bytes: 0 } }
+  sql: alter table `orders` modify `qty` bigint not null default '0'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: warn }
+
+- name: copy on a large table is dangerous
+  schema: orders
+  oracle: false
+  stats: { orders: { rows: 41200000, data_bytes: 19756849152, index_bytes: 6549825536 } }
+  sql: alter table `orders` modify `qty` bigint not null default '0'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+  estimate: { min_above: 300 }
+
+- name: online index on a large table warns about load
+  schema: orders
+  oracle: false
+  stats: { orders: { rows: 41200000, data_bytes: 19756849152, index_bytes: 6549825536 } }
+  sql: alter table `orders` add index `orders_status_index`(`status`)
+  expect:
+    - { rule: add-index, algorithm: INPLACE, severity: warn }
+
+- name: online index on a small table is info
+  schema: orders
+  oracle: false
+  stats: { orders: { rows: 5000, data_bytes: 5242880, index_bytes: 0 } }
+  sql: alter table `orders` add index `orders_status_index`(`status`)
+  expect:
+    - { rule: add-index, algorithm: INPLACE, severity: info }
+
+- name: tables without stats fall back to static severity
+  schema: orders
+  oracle: false
+  stats: { users: { rows: 10, data_bytes: 16384, index_bytes: 0 } }
+  sql: alter table `orders` modify `qty` bigint not null default '0'
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }

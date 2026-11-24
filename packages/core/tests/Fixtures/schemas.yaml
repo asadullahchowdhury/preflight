@@ -1,0 +1,45 @@
+# Shared "before" schemas referenced by fixtures with `schema: <name>`.
+# Written the way SHOW CREATE TABLE prints them.
+
+orders: |
+  CREATE TABLE `users` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  CREATE TABLE `orders` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` bigint unsigned NOT NULL,
+    `status` varchar(20) NOT NULL DEFAULT 'new',
+    `email` varchar(191) DEFAULT NULL,
+    `code` char(4) DEFAULT NULL,
+    `qty` int NOT NULL DEFAULT '0',
+    `kind` enum('a','b') NOT NULL DEFAULT 'a',
+    `note` varchar(100) DEFAULT NULL COMMENT 'c',
+    `body` text,
+    `ts` timestamp NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `orders_email_index` (`email`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+posts: |
+  CREATE TABLE `posts` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `title` varchar(255) NOT NULL,
+    `body` text,
+    PRIMARY KEY (`id`),
+    FULLTEXT KEY `posts_body_fulltext` (`body`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+logs: |
+  CREATE TABLE `logs` (
+    `id` bigint unsigned NOT NULL,
+    `msg` varchar(10) DEFAULT NULL,
+    `level` varchar(10) DEFAULT NULL
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+compressed: |
+  CREATE TABLE `archive` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `payload` varchar(255) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPRESSED;

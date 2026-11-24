@@ -1,0 +1,85 @@
+# Whole migrations as `php artisan migrate --pretend` prints them.
+
+- name: Schema::create with indexes and foreign keys is safe on a new table
+  schema: orders
+  sql: |
+    create table `payments` (`id` bigint unsigned not null auto_increment primary key, `order_id` bigint unsigned not null, `reference` varchar(64) not null, `amount` decimal(10, 2) not null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci';
+    alter table `payments` add constraint `payments_order_id_foreign` foreign key (`order_id`) references `orders` (`id`) on delete cascade;
+    alter table `payments` add unique `payments_reference_unique`(`reference`);
+  expect:
+    - { rule: create-table, severity: info }
+    - { rule: add-foreign-key, algorithm: COPY, severity: info }
+    - { rule: add-unique-index, algorithm: INPLACE, severity: info }
+  advisories: []
+
+- name: two separate rebuilds of the same table
+  schema: orders
+  sql: |
+    alter table `orders` modify `email` varchar(191) not null;
+    alter table `orders` modify `note` varchar(100) null comment 'c' after `id`;
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, rebuild: true, severity: warn }
+    - { rule: modify-column, algorithm: INPLACE, rebuild: true, severity: warn }
+  advisories: [multiple-rebuilds, mdl-wait]
+
+- name: later statements see columns added earlier in the batch
+  schema: orders
+  sql: |
+    alter table `orders` add `region` varchar(20) null;
+    alter table `orders` modify `region` varchar(40) null;
+  expect:
+    - { rule: add-column, algorithm: INSTANT, severity: info }
+    - { rule: modify-column, algorithm: INPLACE, rebuild: false, severity: info }
+
+- name: migrations bookkeeping and schema checks are ignored
+  schema: orders
+  oracle: false
+  sql: |
+    select * from information_schema.tables where table_schema = 'app' and table_name = 'orders' and table_type = 'BASE TABLE';
+    insert into `migrations` (`migration`, `batch`) values ('2026_11_24_000000_add_region', 3);
+  expect: []
+  advisories: []
+
+- name: backfill without where warns
+  schema: orders
+  oracle: false
+  sql: update `orders` set `status` = 'new'
+  expect:
+    - { rule: data-change, severity: warn }
+
+- name: small targeted data change is info
+  schema: orders
+  oracle: false
+  sql: delete from `orders` where `id` = 1
+  expect:
+    - { rule: data-change, severity: info }
+
+- name: unrecognised ALTER clause is never silently passed
+  schema: orders
+  oracle: false
+  sql: alter table `orders` partition by hash(`id`) partitions 4
+  expect:
+    - { rule: unknown-statement, severity: warn }
+
+- name: unrecognised statement type is reported
+  schema: orders
+  oracle: false
+  sql: optimize table `orders`
+  expect:
+    - { rule: unknown-statement, severity: warn }
+
+- name: explicit ALGORITHM=INSTANT that MySQL will refuse
+  schema: orders
+  sql: alter table `orders` add index `orders_qty_index`(`qty`), algorithm=instant
+  oracle: false
+  expect:
+    - { rule: add-index, algorithm: INPLACE, severity: warn }
+  advisories: [explicit-algorithm-fails, mdl-wait]
+
+- name: explicit LOCK=NONE that MySQL will refuse
+  schema: orders
+  sql: alter table `orders` modify `qty` bigint not null default '0', lock=none
+  oracle: false
+  expect:
+    - { rule: modify-column, algorithm: COPY, severity: danger }
+  advisories: [explicit-lock-fails, mdl-wait]

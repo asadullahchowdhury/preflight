@@ -1,0 +1,58 @@
+name: core
+
+on:
+  push:
+    paths: ['packages/core/**', '.github/workflows/core.yml']
+  pull_request:
+    paths: ['packages/core/**', '.github/workflows/core.yml']
+
+defaults:
+  run:
+    working-directory: packages/core
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --no-progress
+      - run: vendor/bin/pest
+
+  oracle:
+    name: Oracle · MySQL ${{ matrix.mysql }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mysql: ['8.0.30', '8.0', '8.4']
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: preflight_oracle
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+          coverage: none
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/pest --group=oracle
+        env:
+          PREFLIGHT_ORACLE_DSN: mysql:host=127.0.0.1;port=3306;dbname=preflight_oracle

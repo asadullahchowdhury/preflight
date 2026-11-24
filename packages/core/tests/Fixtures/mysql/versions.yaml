@@ -1,0 +1,65 @@
+# Version-specific behaviour. The oracle suite only checks these against whatever server it runs on
+# (re-analysing for that server's version), so these expectations come from the MySQL 8.0/8.4 docs.
+
+- name: 8.0.11 has no instant add column
+  server: 8.0.11
+  schema: orders
+  sql: alter table `orders` add `notes` varchar(255) null
+  expect:
+    - { rule: add-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: 8.0.11 default change is in place metadata
+  server: 8.0.11
+  schema: orders
+  sql: alter table `orders` alter column `status` set default 'x'
+  expect:
+    - { rule: alter-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }
+
+- name: 8.0.20 adds columns instantly only at the end
+  server: 8.0.20
+  schema: orders
+  sql: alter table `orders` add `notes` varchar(255) null
+  expect:
+    - { rule: add-column, algorithm: INSTANT, severity: info }
+
+- name: 8.0.20 add column after rebuilds
+  server: 8.0.20
+  schema: orders
+  sql: alter table `orders` add `notes` varchar(255) null after `id`
+  expect:
+    - { rule: add-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: 8.0.28 drop column rebuilds
+  server: 8.0.28
+  schema: orders
+  sql: alter table `orders` drop `note`
+  expect:
+    - { rule: drop-column, algorithm: INPLACE, lock: NONE, rebuild: true, severity: warn }
+
+- name: 8.0.27 rename column is in place metadata
+  server: 8.0.27
+  schema: orders
+  sql: alter table `orders` rename column `note` to `remark`
+  expect:
+    - { rule: rename-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: warn }
+
+- name: 8.0.28 rename column is instant
+  server: 8.0.28
+  schema: orders
+  sql: alter table `orders` rename column `note` to `remark`
+  expect:
+    - { rule: rename-column, algorithm: INSTANT, severity: warn }
+
+- name: 8.4 LTS adds columns instantly at any position
+  server: 8.4.3
+  schema: orders
+  sql: alter table `orders` add `notes` varchar(255) null first
+  expect:
+    - { rule: add-column, algorithm: INSTANT, severity: info }
+
+- name: 8.4 LTS drops columns instantly
+  server: 8.4.3
+  schema: orders
+  sql: alter table `orders` drop `note`
+  expect:
+    - { rule: drop-column, algorithm: INSTANT, severity: warn }
