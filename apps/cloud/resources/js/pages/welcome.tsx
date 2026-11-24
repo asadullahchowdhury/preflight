@@ -57,7 +57,7 @@ export default function Welcome() {
                 <AmbientBackground />
 
                 <header className="sticky top-0 z-20">
-                    <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
+                    <div className="mx-3 mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
                         <Link href="/" className="flex items-center gap-2.5">
                             <LogoMark />
                             <span className="font-semibold tracking-tight">
@@ -80,7 +80,7 @@ export default function Welcome() {
                 </header>
 
                 <main className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <section className="grid items-center gap-12 pt-16 pb-20 sm:pt-24 lg:grid-cols-2 lg:gap-16">
+                    <section className="grid grid-cols-1 items-center gap-12 pt-16 pb-20 sm:pt-24 lg:grid-cols-2 lg:gap-16">
                         <div>
                             <Reveal>
                                 <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-muted-foreground">
@@ -139,7 +139,7 @@ export default function Welcome() {
                         </Reveal>
                     </section>
 
-                    <section className="grid gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-4">
+                    <section className="grid grid-cols-1 gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-4">
                         {features.map((feature, i) => (
                             <Reveal key={feature.title} delay={100 + i * 80}>
                                 <div className="group h-full rounded-2xl glass p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
@@ -163,7 +163,7 @@ export default function Welcome() {
                                 Set up in two minutes
                             </h2>
                         </Reveal>
-                        <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
+                        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
                             {steps.map(([title, body], i) => (
                                 <Reveal key={title} delay={100 + i * 100}>
                                     <div className="h-full rounded-2xl glass p-5 text-center">

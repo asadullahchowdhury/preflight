@@ -26,7 +26,7 @@ export function StatCard({
     tone?: 'default' | 'danger';
 }) {
     return (
-        <div className="group relative overflow-hidden rounded-2xl glass p-5 shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-lg">
+        <div className="group relative overflow-hidden rounded-2xl glass p-4 shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-lg sm:p-5">
             <div
                 className={cn(
                     'absolute -top-10 -right-10 size-32 rounded-full blur-2xl transition-opacity duration-700 group-hover:opacity-100',
@@ -35,10 +35,13 @@ export function StatCard({
                         : 'bg-brand/15 opacity-60',
                 )}
             />
-            <div className="relative flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">{label}</p>
-                    <p className="text-3xl font-semibold tracking-tight tabular-nums">
+            {/* Icon above the numbers on phones, beside them from sm up. */}
+            <div className="relative flex flex-col-reverse gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                        {label}
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                         {value}
                     </p>
                     {hint && (
@@ -47,13 +50,13 @@ export function StatCard({
                 </div>
                 <div
                     className={cn(
-                        'flex size-10 items-center justify-center rounded-xl ring-1 ring-inset',
+                        'flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset sm:size-10 sm:rounded-xl',
                         tone === 'danger'
                             ? 'bg-red-500/10 text-red-600 ring-red-500/20 dark:text-red-400'
                             : 'bg-brand/10 text-brand ring-brand/20',
                     )}
                 >
-                    <Icon className="size-5" />
+                    <Icon className="size-4 sm:size-5" />
                 </div>
             </div>
         </div>

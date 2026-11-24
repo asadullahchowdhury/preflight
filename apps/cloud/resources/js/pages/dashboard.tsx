@@ -78,7 +78,9 @@ export default function Dashboard({
                         </p>
                         <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                             Your migrations,{' '}
-                            <span className="text-gradient">pre-flighted</span>
+                            <span className="text-gradient whitespace-nowrap">
+                                pre-flighted
+                            </span>
                         </h1>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -146,7 +148,7 @@ export default function Dashboard({
                         <Onboarding installUrl={installUrl} />
                     </Reveal>
                 ) : (
-                    <div className="grid gap-8 lg:grid-cols-5">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
                         <section className="space-y-3 lg:col-span-3">
                             <Reveal delay={300}>
                                 <SectionTitle
@@ -173,7 +175,7 @@ export default function Dashboard({
                                     </EmptyState>
                                 </Reveal>
                             ) : (
-                                <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                     {repositories.map((repository, i) => (
                                         <Reveal
                                             key={repository.id}

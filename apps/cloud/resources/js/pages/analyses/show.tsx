@@ -337,7 +337,7 @@ function StatementCard({ statement }: { statement: Statement }) {
             >
                 <div className="overflow-hidden">
                     <div className="space-y-3 border-t border-border/60 p-4">
-                        <pre className="overflow-x-auto rounded-xl bg-neutral-950 p-3 font-mono text-[12.5px] leading-relaxed whitespace-pre-wrap text-neutral-100">
+                        <pre className="rounded-xl bg-neutral-950 p-3 font-mono text-[12.5px] leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-neutral-100">
                             {statement.sql}
                         </pre>
                         {statement.findings.map((f, i) => (
