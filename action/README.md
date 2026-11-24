@@ -64,10 +64,12 @@ The action runs `composer install` itself if `vendor/` is missing. If your job a
 | `fail-on` | `danger` | Fail the job at `danger`, `warn`, or `never`. |
 | `annotations` | `true` | Annotate risky lines in the migration files. |
 | `github-token` | `github.token` | Token for the comment. |
+| `cloud-url` | none | Preflight Cloud URL. The report goes to the cloud, authenticated with the job's OIDC token (add `permissions: id-token: write`), and the Preflight GitHub App posts the check run and comment. If the cloud can't be reached, the action comments itself. |
+| `cloud-audience` | `cloud-url` | OIDC audience the cloud expects. |
 
 ## Outputs
 
-`severity` (`info` / `warn` / `danger`), `danger-count`, `warn-count`, `migrations`, `markdown-file`, `json-file`.
+`severity` (`info` / `warn` / `danger`), `danger-count`, `warn-count`, `migrations`, `markdown-file`, `json-file`, and `analysis-url` with `cloud-url`.
 
 ```yaml
       - id: preflight

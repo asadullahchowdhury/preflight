@@ -11,3 +11,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 packages/*/composer.lock
+
+# Local tool config
+.claude/
+apps/*/.claude/

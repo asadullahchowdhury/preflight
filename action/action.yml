@@ -43,6 +43,15 @@ inputs:
   github-token:
     description: Token for the PR comment. Needs pull-requests write permission.
     default: ${{ github.token }}
+  cloud-url:
+    description: >-
+      Preflight Cloud URL, e.g. https://preflight.example.com. When set, the report goes to the cloud (authenticated
+      with the job's OIDC token: add "permissions: id-token: write") and the Preflight GitHub App posts the check
+      run and comment. If the cloud can't be reached, the action comments itself.
+    default: ''
+  cloud-audience:
+    description: OIDC audience the cloud expects. Defaults to cloud-url.
+    default: ''
 
 outputs:
   severity:
@@ -63,6 +72,9 @@ outputs:
   json-file:
     description: Path of the JSON report.
     value: ${{ steps.check.outputs.json-file }}
+  analysis-url:
+    description: The analysis in Preflight Cloud, when cloud-url is set.
+    value: ${{ steps.cloud.outputs.analysis-url }}
 
 runs:
   using: composite
@@ -96,10 +108,25 @@ runs:
         PREFLIGHT_BEFORE: ${{ github.event.before }}
         PREFLIGHT_STATS_FILE: ${{ inputs.stats-file }}
         PREFLIGHT_COMPOSER_INSTALL: ${{ inputs.composer-install }}
+        # With the cloud, the App annotates the diff through its check run instead.
+        PREFLIGHT_ANNOTATIONS: ${{ inputs.cloud-url == '' && inputs.annotations || 'false' }}
+
+    - name: Send to Preflight Cloud
+      id: cloud
+      if: inputs.cloud-url != '' && steps.check.outputs.json-file != ''
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/cloud.sh"
+      env:
+        PREFLIGHT_CLOUD_URL: ${{ inputs.cloud-url }}
+        PREFLIGHT_CLOUD_AUDIENCE: ${{ inputs.cloud-audience }}
+        PREFLIGHT_JSON: ${{ steps.check.outputs.json-file }}
+        PREFLIGHT_PR: ${{ github.event.pull_request.number }}
+        PREFLIGHT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PREFLIGHT_BASE_REF: ${{ github.base_ref }}
         PREFLIGHT_ANNOTATIONS: ${{ inputs.annotations }}
 
     - name: Comment on the pull request
-      if: always() && steps.check.outputs.markdown-file != '' && inputs.comment != 'never' && github.event.pull_request
+      if: always() && steps.check.outputs.markdown-file != '' && inputs.comment != 'never' && github.event.pull_request && steps.cloud.outputs.posted != 'true'
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/comment.sh"
       env:

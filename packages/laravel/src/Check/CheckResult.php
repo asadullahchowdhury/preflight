@@ -15,6 +15,7 @@ final class CheckResult
      * @param  list<string>  $notes  things Preflight could not analyse, for the reader
      * @param  list<string>  $baseMigrations  migrations run first to build the "before" schema
      * @param  array<string, string>  $files  migration name => absolute file path
+     * @param  array{statements?: list<array{sql: string, migration: string}>, schema_sql?: string, foreign_key_checks?: bool, default_charset?: string}  $input  what was analysed, so Preflight Cloud can repeat it
      */
     public function __construct(
         public readonly Report $report,
@@ -24,6 +25,7 @@ final class CheckResult
         public readonly array $baseMigrations,
         public readonly string $connectedVersion,
         public readonly array $files = [],
+        public readonly array $input = [],
     ) {}
 
     public function sources(): Sources
@@ -52,6 +54,6 @@ final class CheckResult
             'base_migrations' => count($this->baseMigrations),
             'connected_server_version' => $this->connectedVersion,
             'notes' => $this->notes,
-        ] + $report;
+        ] + $report + ['input' => $this->input];
     }
 }

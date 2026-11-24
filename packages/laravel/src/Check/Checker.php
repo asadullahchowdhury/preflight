@@ -7,6 +7,7 @@ namespace Preflight\Laravel\Check;
 use Closure;
 use Illuminate\Database\Connection;
 use Preflight\Core\Analyzer;
+use Preflight\Core\Schema\SchemaSnapshot;
 use Preflight\Core\Server\ServerProfile;
 use Preflight\Core\Sql\TokenList;
 use Preflight\Laravel\Database\MySqlInspector;
@@ -84,12 +85,14 @@ final class Checker
         }
 
         ($this->progress)('Reading the schema…');
-        $snapshot = $inspector->snapshot();
+        $schemaSql = $inspector->createStatements();
+        $snapshot = SchemaSnapshot::fromSql($schemaSql);
 
         $statements = [];
         $labels = [];
         $analysed = [];
         $files = [];
+        $input = [];
         foreach ($targets as $name => $path) {
             $connectionName = $this->migrator->connectionFor($path);
             if ($connectionName !== null && $connectionName !== $connection->getName()) {
@@ -111,6 +114,7 @@ final class Checker
                     $labels[count($labels)] = $name;
                 }
                 $statements[] = $sql;
+                $input[] = ['sql' => $sql, 'migration' => $name];
             }
         }
 
@@ -122,7 +126,12 @@ final class Checker
 
         $report = $this->analyzer->analyze($statements, $server, $snapshot, $stats?->toStatsSet());
 
-        return new CheckResult($report, $analysed, $labels, $notes, $baseMigrations, $connectedVersion, $files);
+        return new CheckResult($report, $analysed, $labels, $notes, $baseMigrations, $connectedVersion, $files, [
+            'statements' => $input,
+            'schema_sql' => $schemaSql,
+            'foreign_key_checks' => $server->foreignKeyChecks,
+            'default_charset' => $server->defaultCharset,
+        ]);
     }
 
     /**

@@ -1,0 +1,45 @@
+name: cloud
+
+on:
+  push:
+    paths: ['apps/cloud/**', 'packages/core/src/**', '.github/workflows/cloud.yml']
+  workflow_dispatch:
+  pull_request:
+    paths: ['apps/cloud/**', 'packages/core/src/**', '.github/workflows/cloud.yml']
+
+defaults:
+  run:
+    working-directory: apps/cloud
+
+jobs:
+  test:
+    name: Cloud app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/cloud/package-lock.json
+
+      - run: composer install --no-interaction --no-progress
+      - run: npm ci --no-audit --no-fund
+      - run: cp .env.example .env && php artisan key:generate
+      # Typed route helpers (gitignored) that the TypeScript imports.
+      - run: php artisan wayfinder:generate --with-form
+
+      - name: Lint and types
+        run: |
+          vendor/bin/pint --test
+          vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+          npx vp check
+          npx tsc --noEmit
+      - name: Build
+        run: npm run build
+      - name: Tests
+        run: php artisan test
