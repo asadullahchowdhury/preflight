@@ -24,7 +24,7 @@ php bin/preflight-analyze --mysql=8.0.36 \
 DANGER alter table `orders` modify `status` varchar(100) not null default 'pending'
         → ALGORITHM=COPY LOCK=SHARED · rebuilds table · BLOCKS WRITES · 8 min – 42 min
         [modify-column] … varchar(50) → varchar(100) (crosses the 255-byte length boundary) …
-          ↳ Safer: add a new column, backfill it in batches …, or run it with gh-ost / pt-online-schema-change.
+          ↳ Add a new column, backfill it in batches …, or run it with gh-ost / pt-online-schema-change.
 
 WARN   alter table `orders` add index `orders_customer_email_index`(`customer_email`)
         → ALGORITHM=INPLACE LOCK=NONE · 3 min – 10 min

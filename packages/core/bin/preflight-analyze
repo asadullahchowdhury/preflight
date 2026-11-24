@@ -6,7 +6,7 @@ declare(strict_types=1);
 /*
  * Dev CLI for the Preflight core engine.
  *
- *   bin/preflight-analyze [--mysql=8.0.36] [--schema=schema.sql] [--stats=stats.json] [--json] migration.sql
+ *   bin/preflight-analyze [--mysql=8.0.36] [--schema=schema.sql] [--stats=stats.json] [--json|--markdown] migration.sql
  *
  * schema.sql: CREATE TABLE statements (SHOW CREATE TABLE output) describing the database before the migration.
  * stats.json: {"orders": {"rows": 41200000, "data_bytes": 19756849152, "index_bytes": 6549825536}}
@@ -21,21 +21,22 @@ foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] a
 }
 
 use Preflight\Core\Analyzer;
-use Preflight\Core\Report\Report;
+use Preflight\Core\Render\MarkdownRenderer;
+use Preflight\Core\Render\TextRenderer;
 use Preflight\Core\Report\Severity;
 use Preflight\Core\Schema\SchemaSnapshot;
 use Preflight\Core\Server\ServerProfile;
 use Preflight\Core\Stats\StatsSet;
 
-$options = ['mysql' => '8.0.36', 'schema' => null, 'stats' => null, 'json' => false];
+$options = ['mysql' => '8.0.36', 'schema' => null, 'stats' => null, 'format' => 'text'];
 $file = null;
 foreach (array_slice($argv, 1) as $arg) {
-    if ($arg === '--json') {
-        $options['json'] = true;
+    if ($arg === '--json' || $arg === '--markdown') {
+        $options['format'] = substr($arg, 2);
     } elseif (preg_match('/^--(mysql|schema|stats)=(.*)$/', $arg, $m)) {
         $options[$m[1]] = $m[2];
     } elseif ($arg === '-h' || $arg === '--help') {
-        fwrite(STDOUT, "Usage: preflight-analyze [--mysql=8.0.36] [--schema=schema.sql] [--stats=stats.json] [--json] migration.sql\n");
+        fwrite(STDOUT, "Usage: preflight-analyze [--mysql=8.0.36] [--schema=schema.sql] [--stats=stats.json] [--json|--markdown] migration.sql\n");
         exit(0);
     } else {
         $file = $arg;
@@ -71,55 +72,10 @@ try {
     exit(2);
 }
 
-if ($options['json']) {
-    echo json_encode($report->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), "\n";
-    exit($report->severity() === Severity::Danger ? 1 : 0);
-}
+echo match ($options['format']) {
+    'json' => json_encode($report->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n",
+    'markdown' => (new MarkdownRenderer)->render($report),
+    default => (new TextRenderer(ansi: stream_isatty(STDOUT)))->render($report),
+};
 
-render($report);
 exit($report->severity() === Severity::Danger ? 1 : 0);
-
-function render(Report $report): void
-{
-    $color = static fn (Severity $s, string $text): string => match ($s) {
-        Severity::Danger => "\033[31m{$text}\033[0m",
-        Severity::Warn => "\033[33m{$text}\033[0m",
-        Severity::Info => "\033[32m{$text}\033[0m",
-    };
-    $icon = static fn (Severity $s): string => match ($s) {
-        Severity::Danger => 'DANGER',
-        Severity::Warn => 'WARN  ',
-        Severity::Info => 'OK    ',
-    };
-
-    echo "Preflight · MySQL {$report->serverVersion} · ".($report->sizeAware ? 'size-aware' : 'static (no table sizes)')."\n\n";
-
-    foreach ($report->statements as $statement) {
-        $sql = preg_replace('/\s+/', ' ', $statement->sql) ?? $statement->sql;
-        echo $color($statement->severity(), $icon($statement->severity())).' '.(mb_strlen($sql) > 110 ? mb_substr($sql, 0, 107).'...' : $sql)."\n";
-        if ($statement->effective !== null) {
-            $e = $statement->effective;
-            echo '        → ALGORITHM='.$e->algorithm->value.' LOCK='.$e->lock->value
-                .($e->rebuildsTable() ? ' · rebuilds table' : '')
-                .($e->blocksWrites() ? ' · BLOCKS WRITES' : '')
-                .($statement->estimate !== null ? ' · '.$statement->estimate->format() : '')
-                ."\n";
-        }
-        foreach ($statement->findings as $finding) {
-            echo '        '.$color($finding->severity, '['.$finding->ruleId.']').' '.$finding->operation.': '.$finding->message."\n";
-            if ($finding->suggestion !== null && $finding->severity !== Severity::Info) {
-                echo '          ↳ '.$finding->suggestion."\n";
-            }
-        }
-        foreach ($statement->advisories as $advisory) {
-            echo '        '.$color($advisory->severity, '['.$advisory->id.']').' '.$advisory->message."\n";
-        }
-        echo "\n";
-    }
-
-    foreach ($report->advisories as $advisory) {
-        echo $color($advisory->severity, '['.$advisory->id.']').' '.$advisory->message."\n";
-    }
-
-    echo "\nOverall: ".$color($report->severity(), strtoupper($report->severity()->value))."\n";
-}
