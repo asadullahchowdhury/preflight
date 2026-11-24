@@ -6,6 +6,7 @@ use App\Analysis\AnalysisRunner;
 use App\Models\Analysis;
 use App\Models\Installation;
 use App\Models\Repository;
+use App\Models\TableStat;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -68,6 +69,53 @@ class DemoSeeder extends Seeder
         'empty' => [],
     ];
 
+    /**
+     * Today's production sizes per repository: [rows, data GB, index GB, daily growth].
+     *
+     * @var array<string, array<string, array{0: int, 1: float, 2: float, 3: float}>>
+     */
+    private const PRODUCTION_SIZES = [
+        'acme/storefront' => [
+            'orders' => [41_200_000, 18.4, 6.1, 0.004],
+            'users' => [2_300_000, 1.9, 0.6, 0.002],
+            'jobs' => [1_200, 0.002, 0.0005, 0.0],
+            'order_items' => [118_000_000, 22.0, 9.5, 0.005],
+            'settings' => [40, 0.00002, 0.00001, 0.0],
+        ],
+        'acme/billing-api' => [
+            'users' => [860_000, 0.7, 0.3, 0.001],
+            'jobs' => [300, 0.001, 0.0005, 0.0],
+            'invoices' => [9_400_000, 6.2, 2.1, 0.003],
+        ],
+    ];
+
+    /**
+     * Thirty days of history ending today, growing towards today's sizes.
+     *
+     * @param  array<string, array{0: int, 1: float, 2: float, 3: float}>  $tables
+     */
+    private function seedSizes(Repository $repository, array $tables): void
+    {
+        $gb = 1024 ** 3;
+        for ($day = 29; $day >= 0; $day--) {
+            foreach ($tables as $name => [$rows, $data, $index, $growth]) {
+                $factor = (1 - $growth) ** $day;
+                TableStat::query()->updateOrCreate(
+                    ['repository_id' => $repository->id, 'table_name' => $name, 'captured_on' => now()->subDays($day)->toDateString()],
+                    ['rows' => (int) ($rows * $factor), 'data_bytes' => (int) ($data * $gb * $factor), 'index_bytes' => (int) ($index * $gb * $factor)],
+                );
+            }
+        }
+
+        $repository->forceFill([
+            'stats_pushed_at' => now()->subHours(3),
+            'stats_captured_on' => now()->toDateString(),
+            'stats_server_version' => '8.0.40',
+            'stats_token_hash' => hash('sha256', 'pfs_demo_'.$repository->id),
+            'stats_token_created_at' => now()->subDays(30),
+        ])->save();
+    }
+
     public function run(): void
     {
         $user = User::query()->updateOrCreate(['github_login' => self::LOGIN], [
@@ -102,6 +150,10 @@ class DemoSeeder extends Seeder
             ]);
             if ($repository->analyses()->exists()) {
                 continue;
+            }
+
+            if (isset(self::PRODUCTION_SIZES[$fullName])) {
+                $this->seedSizes($repository, self::PRODUCTION_SIZES[$fullName]);
             }
 
             foreach ($runs as $scenario => [$pr, $daysAgo]) {

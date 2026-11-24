@@ -45,17 +45,25 @@ class AnalysisRunner
             $statements[] = $statement['sql'];
         }
 
+        // Production's own version (reported with its table sizes) beats whatever CI assumed.
+        $version = $repository->stats_server_version ?: (string) Arr::get($payload, 'server_version');
         $server = ServerProfile::mysql(
-            (string) Arr::get($payload, 'server_version'),
+            $version,
             (bool) Arr::get($payload, 'input.foreign_key_checks', true),
             (string) Arr::get($payload, 'input.default_charset', 'utf8mb4'),
         );
         $schema = SchemaSnapshot::fromSql((string) Arr::get($payload, 'input.schema_sql', ''));
+        $stats = $repository->latestStats();
 
-        $report = $this->analyzer->analyze($statements, $server, $schema, null);
+        $report = $this->analyzer->analyze($statements, $server, $schema, $stats);
         $sources = new Sources(array_filter($labels, 'is_string'));
 
-        return DB::transaction(fn () => $this->store($repository, $report, $sources, $payload, $claims));
+        $notes = array_values(array_filter((array) Arr::get($payload, 'notes', []), 'is_string'));
+        if ($stats !== null && $repository->stats_captured_on !== null && $repository->stats_captured_on->lt(now()->subDays(14))) {
+            $notes[] = 'Production table sizes are from '.$repository->stats_captured_on->toFormattedDateString().'. Schedule `php artisan preflight:stats --push` daily to keep estimates current.';
+        }
+
+        return DB::transaction(fn () => $this->store($repository, $report, $sources, ['notes' => $notes] + $payload, $claims));
     }
 
     /**

@@ -27,4 +27,13 @@ return [
     */
     'fail_on' => env('PREFLIGHT_FAIL_ON', 'danger'),
 
+    /*
+    | Preflight Cloud: `php artisan preflight:stats --push` sends production table sizes here (numbers only),
+    | authenticated with the repository's stats token from the Preflight dashboard. Schedule it daily:
+    |   Schedule::command('preflight:stats --push')->daily();
+    */
+    'cloud_url' => env('PREFLIGHT_CLOUD_URL'),
+
+    'stats_token' => env('PREFLIGHT_STATS_TOKEN'),
+
 ];

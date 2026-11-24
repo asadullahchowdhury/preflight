@@ -73,6 +73,18 @@ The PR number comes from the token's `ref` claim, not from the request body.
 
 If the cloud can't be reached, the action falls back to commenting itself, so CI never depends on the cloud being up.
 
+## Production table sizes
+
+Each repository can have one **stats token** (created on its page under _Table sizes_; only a SHA-256 hash is stored). Production runs `php artisan preflight:stats --push` daily, which calls `POST /api/stats` with that token. Each push stores one snapshot per table per day, and 90 days of snapshots are kept.
+
+Every analysis then uses the latest snapshot:
+
+- duration estimates per statement;
+- size-aware severity: a COPY that blocks writes for under a second is `info`, not `danger`;
+- production's reported MySQL version.
+
+If the sizes are more than 14 days old, the analysis says so.
+
 ## Tests
 
 ```bash
@@ -86,11 +98,12 @@ npx vp check && npx tsc --noEmit
 
 ## Layout
 
-| Path                              | What                                                            |
-| --------------------------------- | --------------------------------------------------------------- |
-| `app/GitHub/GitHubApp.php`        | API client as the App (JWT) or an installation (cached tokens)  |
-| `app/GitHub/OidcVerifier.php`     | Verifies GitHub Actions OIDC tokens                             |
-| `app/GitHub/InstallationSync.php` | Installations and repositories, from a user's token or webhooks |
-| `app/Analysis/AnalysisRunner.php` | Re-runs `preflight/core` on what CI sent and stores the result  |
-| `app/Jobs/PublishAnalysis.php`    | Check run and PR comment as the App                             |
-| `resources/js/pages`              | Landing, sign-in, dashboard, repository and analysis pages      |
+| Path                                           | What                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| `app/GitHub/GitHubApp.php`                     | API client as the App (JWT) or an installation (cached tokens)  |
+| `app/GitHub/OidcVerifier.php`                  | Verifies GitHub Actions OIDC tokens                             |
+| `app/GitHub/InstallationSync.php`              | Installations and repositories, from a user's token or webhooks |
+| `app/Analysis/AnalysisRunner.php`              | Re-runs `preflight/core` on what CI sent and stores the result  |
+| `app/Jobs/PublishAnalysis.php`                 | Check run and PR comment as the App                             |
+| `app/Http/Controllers/Api/StatsController.php` | Production table sizes pushed by `preflight:stats --push`       |
+| `resources/js/pages`                           | Landing, sign-in, dashboard, repository and analysis pages      |

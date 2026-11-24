@@ -86,3 +86,22 @@ export type Paginated<T> = {
     prev_page_url: string | null;
     next_page_url: string | null;
 };
+
+export type TableSize = {
+    name: string;
+    rows: number;
+    dataBytes: number;
+    indexBytes: number;
+    totalBytes: number;
+    history: { date: string; bytes: number }[];
+};
+
+export type RepositoryStats = {
+    hasToken: boolean;
+    tokenCreatedAt: string | null;
+    pushedAt: string | null;
+    capturedOn: string | null;
+    serverVersion: string | null;
+    tableCount: number;
+    tables: TableSize[];
+};

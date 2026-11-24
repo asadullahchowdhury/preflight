@@ -26,6 +26,8 @@ Route::post('logout', [GitHubLoginController::class, 'logout'])->middleware('aut
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('repositories/{repository}', [RepositoryController::class, 'show'])->name('repositories.show');
+    Route::post('repositories/{repository}/stats-token', [RepositoryController::class, 'issueStatsToken'])->middleware('throttle:10,1')->name('repositories.stats-token.store');
+    Route::delete('repositories/{repository}/stats-token', [RepositoryController::class, 'revokeStatsToken'])->name('repositories.stats-token.destroy');
     Route::get('analyses/{analysis}', [AnalysisController::class, 'show'])->name('analyses.show');
 
     Route::get('github/setup', [InstallationController::class, 'setup'])->name('github.setup');

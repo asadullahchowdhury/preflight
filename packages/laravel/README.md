@@ -91,6 +91,23 @@ This reads row estimates and data/index sizes from `information_schema.TABLES`: 
 
 With sizes, a COPY on a 2,000-row table is `info` (it blocks writes for under a second). The same change on 41M rows is `danger`, estimated at 8–42 minutes.
 
+### Pushing sizes to Preflight Cloud
+
+With Preflight Cloud, production pushes its sizes itself and every PR check uses them automatically:
+
+1. On the repository's page in Preflight, open **Table sizes** and click **Create token**.
+2. Add the two values it shows to production's environment:
+   ```dotenv
+   PREFLIGHT_CLOUD_URL=https://your-preflight-host
+   PREFLIGHT_STATS_TOKEN=pfs_…
+   ```
+3. Schedule the push, e.g. in `routes/console.php`:
+   ```php
+   Schedule::command('preflight:stats --push')->daily();
+   ```
+
+The push sends table names, row estimates and byte sizes, never row data. The cloud keeps 90 days of history (shown as growth per table) and uses production's reported MySQL version for analyses.
+
 ## Configuration
 
 ```bash
@@ -102,6 +119,8 @@ php artisan vendor:publish --tag=preflight-config
 | `mysql_version` | `PREFLIGHT_MYSQL_VERSION` | the connected server's version |
 | `connection` | `PREFLIGHT_CONNECTION` | the default connection |
 | `stats_path` | `PREFLIGHT_STATS_PATH` | none |
+| `cloud_url` | `PREFLIGHT_CLOUD_URL` | none (for `--push`) |
+| `stats_token` | `PREFLIGHT_STATS_TOKEN` | none (for `--push`) |
 | `fail_on` | `PREFLIGHT_FAIL_ON` | `danger` |
 
 ## GitHub Actions
