@@ -79,6 +79,8 @@ vendor/bin/pint --test
 # every table in it is dropped between cases.
 PREFLIGHT_ORACLE_DSN="mysql:host=127.0.0.1;dbname=preflight_oracle" vendor/bin/pest --group=oracle
 ../../scripts/oracle-matrix.sh 8.0.28 8.4   # the same against several MySQL versions in Docker
+# Windows without Docker: every mysql-8.* build in Laragon's bin/mysql, as a temporary server on port 3307
+powershell -File ../../scripts/oracle-matrix.ps1 -MysqlRoot D:/laragon/bin/mysql
 ```
 
 **Fixtures** (`tests/Fixtures/mysql/*.yaml`) are the source of truth for the rules. Each case:

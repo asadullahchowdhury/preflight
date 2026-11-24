@@ -29,8 +29,9 @@ The plan, architecture, data model and milestones are in [docs/PLAN.md](docs/PLA
 cd packages/core && composer install && vendor/bin/pest
 cd packages/laravel && composer install && vendor/bin/pest   # needs a local MySQL (see its README)
 
-# The oracle suite against several MySQL versions in Docker (8.0.12 → 8.4):
-scripts/oracle-matrix.sh
+# The oracle suite against several MySQL versions: Docker, or on Windows every MySQL build in Laragon
+scripts/oracle-matrix.sh            # Docker
+powershell -File scripts/oracle-matrix.ps1  # Laragon: each D:/laragon/bin/mysql/mysql-8.* build on port 3307
 ```
 
 - [packages/core/README.md](packages/core/README.md) covers the CLI, the fixture format and the MySQL oracle tests.

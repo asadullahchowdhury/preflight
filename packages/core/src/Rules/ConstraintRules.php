@@ -38,6 +38,12 @@ final class ConstraintRules implements Rule
                 "Drops foreign key `{$operation->name}` in place (metadata only).");
         }
 
+        if (! $context->server->enforcesCheckConstraints()) {
+            return new Verdict('add-check', Classification::instant(),
+                "MySQL {$context->server->version} parses CHECK constraints but ignores them (they are enforced from 8.0.16), so this is metadata only and the constraint is NOT enforced.",
+                'Validate in application code until the server is upgraded to 8.0.16 or later.');
+        }
+
         return new Verdict('add-check', Classification::copy(),
             'Adding a CHECK constraint copies the table (ALGORITHM=COPY) to validate every row, blocking writes.',
             Advice::blocking('Validate in application code instead, or schedule a maintenance window.'));

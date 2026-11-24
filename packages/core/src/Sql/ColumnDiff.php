@@ -69,8 +69,9 @@ final class ColumnDiff
             $newCollation = $this->effectiveCollation($new, $table, $server);
             if ($oldCollation !== null && $newCollation !== null && $oldCollation !== $newCollation) {
                 $changes[] = "collation {$oldCollation} → {$newCollation}";
-                // Verified on 8.0.30 for non-indexed columns; indexed columns must re-sort the index.
-                $parts[] = [$table->isColumnIndexed($old->name) ? Classification::copy() : Classification::inplaceMetadata(), 'collation change'];
+                // Indexed columns must re-sort the index, so they always copy.
+                $inPlace = $server->supportsInplaceCollationChange() && ! $table->isColumnIndexed($old->name);
+                $parts[] = [$inPlace ? Classification::inplaceMetadata() : Classification::copy(), 'collation change'];
             }
         }
 

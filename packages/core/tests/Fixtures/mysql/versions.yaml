@@ -63,3 +63,33 @@
   sql: alter table `orders` drop `note`
   expect:
     - { rule: drop-column, algorithm: INSTANT, severity: warn }
+
+# Verified on MySQL 8.0.12 (oracle matrix): CHECK constraints are parsed but ignored before 8.0.16.
+- name: before 8.0.16 a check constraint is ignored, so it is instant
+  server: 8.0.12
+  schema: orders
+  sql: alter table `orders` add constraint `orders_qty_check` check (`qty` >= 0)
+  expect:
+    - { rule: add-check, algorithm: INSTANT, lock: NONE, rebuild: false, severity: info }
+
+- name: check constraints copy the table once they are enforced (8.0.16)
+  server: 8.0.16
+  schema: orders
+  sql: alter table `orders` add constraint `orders_qty_check` check (`qty` >= 0)
+  expect:
+    - { rule: add-check, algorithm: COPY, severity: danger }
+
+# Verified on MySQL 8.0.12 (COPY) and 8.0.27 (in place); versions in between are treated as COPY.
+- name: before 8.0.27 changing the collation of a non-indexed column copies the table
+  server: 8.0.12
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) collate utf8mb4_bin null comment 'c'
+  expect:
+    - { rule: modify-column, algorithm: COPY, lock: SHARED, rebuild: true, severity: danger }
+
+- name: from 8.0.27 changing the collation of a non-indexed column is in place
+  server: 8.0.27
+  schema: orders
+  sql: alter table `orders` modify `note` varchar(100) collate utf8mb4_bin null comment 'c'
+  expect:
+    - { rule: modify-column, algorithm: INPLACE, lock: NONE, rebuild: false, severity: info }

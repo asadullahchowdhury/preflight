@@ -59,6 +59,23 @@ final class ServerProfile
         return $this->atLeast('8.0.29');
     }
 
+    /** CHECK constraints are enforced from 8.0.16; earlier versions parse and ignore them. */
+    public function enforcesCheckConstraints(): bool
+    {
+        return $this->atLeast('8.0.16');
+    }
+
+    /**
+     * Changing the collation of a non-indexed column in place (metadata only).
+     *
+     * 8.0.12 copies the table and 8.0.27 does it in place (both checked by the oracle). Versions in between
+     * are untested, so they are treated as copying: a possible false alarm, never a missed one.
+     */
+    public function supportsInplaceCollationChange(): bool
+    {
+        return $this->atLeast('8.0.27');
+    }
+
     /** INSTANT RENAME COLUMN: 8.0.28+. */
     public function supportsInstantRenameColumn(): bool
     {

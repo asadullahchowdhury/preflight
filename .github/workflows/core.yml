@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mysql: ['8.0.12', '8.0.27', '8.0.28', '8.0.30', '8.0', '8.4']
+        mysql: ['8.0.12', '8.0.27', '8.0.28', '8.0.30', '8.0', '8.4']  # all verified locally via scripts/oracle-matrix.ps1
     services:
       mysql:
         image: mysql:${{ matrix.mysql }}
