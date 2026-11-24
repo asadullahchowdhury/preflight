@@ -28,13 +28,16 @@ jobs:
       - run: vendor/bin/phpstan analyse --no-progress
       - run: vendor/bin/pest
 
+  # Ground truth: every fixture's prediction is checked by a real server. The versions are where MySQL's
+  # online-DDL behaviour changes: INSTANT arrives (8.0.12), INSTANT rename (8.0.28), INSTANT add-anywhere and
+  # drop (8.0.29, withdrawn, so 8.0.30), the latest 8.0, and 8.4 LTS.
   oracle:
     name: Oracle · MySQL ${{ matrix.mysql }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        mysql: ['8.0.30', '8.0', '8.4']
+        mysql: ['8.0.12', '8.0.27', '8.0.28', '8.0.30', '8.0', '8.4']
     services:
       mysql:
         image: mysql:${{ matrix.mysql }}
@@ -44,7 +47,7 @@ jobs:
         ports: ['3306:3306']
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1"
-          --health-interval=5s --health-timeout=5s --health-retries=20
+          --health-interval=5s --health-timeout=5s --health-retries=30
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2

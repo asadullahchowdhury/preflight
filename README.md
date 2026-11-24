@@ -9,7 +9,7 @@ MVP scope: **Laravel + MySQL 8**, delivered as a GitHub check and PR comment. Th
 | Path | What | License | Status |
 |---|---|---|---|
 | [`packages/core`](packages/core) | Framework-agnostic PHP engine: SQL parsing, schema snapshot, MySQL online-DDL rules, duration estimates | MIT (planned) | **M1: done** |
-| `packages/laravel` | Laravel package: `php artisan preflight:check`, `preflight:stats` | MIT (planned) | M2 |
+| [`packages/laravel`](packages/laravel) | Laravel package: `php artisan preflight:check`, `preflight:stats` | MIT (planned) | **M2: done** |
 | `action/` | GitHub composite action (free tier: static verdict as a PR comment) | MIT (planned) | M3 |
 | `apps/cloud/` | Laravel + Inertia React SaaS: GitHub App, size-aware verdicts, dashboard | private | M4+ |
 
@@ -26,9 +26,14 @@ The plan, architecture, data model and milestones are in [docs/PLAN.md](docs/PLA
 ## Development
 
 ```bash
-cd packages/core
-composer install
-vendor/bin/pest
+cd packages/core && composer install && vendor/bin/pest
+cd packages/laravel && composer install && vendor/bin/pest   # needs a local MySQL (see its README)
+
+# The oracle suite against several MySQL versions in Docker (8.0.12 → 8.4):
+scripts/oracle-matrix.sh
 ```
 
-See [packages/core/README.md](packages/core/README.md) for the CLI, the fixture format and the MySQL oracle tests.
+- [packages/core/README.md](packages/core/README.md) covers the CLI, the fixture format and the MySQL oracle tests.
+- [packages/laravel/README.md](packages/laravel/README.md) covers the artisan commands and CI usage.
+
+CI (`.github/workflows`) runs the core tests on PHP 8.2 and 8.4. It also runs the oracle suite on MySQL 8.0.12, 8.0.27, 8.0.28, 8.0.30, 8.0 (latest) and 8.4, and the Laravel package on Laravel 11, 12 and 13.

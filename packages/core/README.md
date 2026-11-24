@@ -34,7 +34,7 @@ DANGER alter table `orders` add constraint `orders_user_id_foreign` foreign key 
           ↳ Wrap the change in Schema::disableForeignKeyConstraints() …
 ```
 
-The exit code is `1` when anything is `danger`. Add `--json` for machine-readable output.
+The exit code is `1` when anything is `danger`. Add `--json` for machine-readable output, or `--markdown` for a PR comment. The renderers are `Preflight\Core\Render\TextRenderer` and `MarkdownRenderer`.
 
 ## PHP API
 
@@ -78,6 +78,7 @@ vendor/bin/pint --test
 # Oracle: checks the engine against a real MySQL. The database name must contain "preflight";
 # every table in it is dropped between cases.
 PREFLIGHT_ORACLE_DSN="mysql:host=127.0.0.1;dbname=preflight_oracle" vendor/bin/pest --group=oracle
+../../scripts/oracle-matrix.sh 8.0.28 8.4   # the same against several MySQL versions in Docker
 ```
 
 **Fixtures** (`tests/Fixtures/mysql/*.yaml`) are the source of truth for the rules. Each case:

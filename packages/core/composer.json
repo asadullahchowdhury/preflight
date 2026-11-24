@@ -3,7 +3,13 @@
     "description": "Deterministic MySQL online-DDL risk analysis for schema migrations.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["mysql", "migrations", "online-ddl", "schema", "linter"],
+    "keywords": [
+        "mysql",
+        "migrations",
+        "online-ddl",
+        "schema",
+        "linter"
+    ],
     "require": {
         "php": "^8.2",
         "phpmyadmin/sql-parser": "^5.10"
@@ -24,7 +30,9 @@
             "Preflight\\Core\\Tests\\": "tests/"
         }
     },
-    "bin": ["bin/preflight-analyze"],
+    "bin": [
+        "bin/preflight-analyze"
+    ],
     "scripts": {
         "test": "pest",
         "test:oracle": "pest --group=oracle",
@@ -39,5 +47,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
 }

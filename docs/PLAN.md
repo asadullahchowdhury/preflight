@@ -133,7 +133,7 @@ src/
 | Week | Milestone | Done when |
 |---|---|---|
 | **1** | **M1: core rules engine** (implemented right after approval) | Monorepo scaffolded. `packages/core` with parser, schema snapshot, ColumnDiff, the rules above, and DurationEstimator. 40+ YAML fixtures green. Oracle group green against local MySQL 8.0.30. PHPStan and Pint clean. `bin/preflight-analyze schema.sql migration.sql` prints findings. |
-| 2 | M2: Laravel package | `preflight:check` migrates the base, snapshots tables, captures pretend SQL for pending migrations, and outputs a table, markdown, or JSON. Tested against a fixture Laravel app. Docker oracle matrix for 8.0.x and 8.4. |
+| 2 | M2: Laravel package | `preflight:check` migrates the base, snapshots tables, captures pretend SQL for pending migrations, and outputs a table, markdown, or JSON. Tested against a fixture Laravel app. Docker oracle matrix for 8.0.x and 8.4. **Done:** the package is tested on Laravel 11 and 13 and in a real Laravel 13 app. The oracle matrix is in CI and `scripts/oracle-matrix.sh`, and has not run yet. |
 | 3 | M3: GitHub Action (free tier) | A composite action with a MySQL service. It posts a static verdict as a PR comment (falling back to the job summary on fork PRs) and fails the job on `danger` if configured. A workflow template is in the docs. |
 | 4 | M4: Cloud skeleton | Laravel + Inertia React app with GitHub login, GitHub App install flow, and repos list. The OIDC-verified `POST /api/analyses` endpoint, with the check run and PR comment posted as the App. |
 | 5 | M5: Size-aware tier | `preflight:stats --push` with a per-repo token. Stats ingestion. Size-aware severity and duration ranges in comments. Dashboard pages for stats and analysis history. |

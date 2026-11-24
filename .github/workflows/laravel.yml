@@ -1,0 +1,55 @@
+name: laravel
+
+on:
+  push:
+    paths: ['packages/laravel/**', 'packages/core/src/**', '.github/workflows/laravel.yml']
+  pull_request:
+    paths: ['packages/laravel/**', 'packages/core/src/**', '.github/workflows/laravel.yml']
+
+defaults:
+  run:
+    working-directory: packages/laravel
+
+jobs:
+  test:
+    name: Laravel ${{ matrix.laravel }} · PHP ${{ matrix.php }} · MySQL ${{ matrix.mysql }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { laravel: '11', testbench: '9', pest: '3', php: '8.2', mysql: '8.0' }
+          - { laravel: '12', testbench: '10', pest: '3', php: '8.3', mysql: '8.0' }
+          - { laravel: '13', testbench: '11', pest: '4', php: '8.4', mysql: '8.4', analyse: true }
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      PREFLIGHT_TEST_DB_HOST: 127.0.0.1
+      PREFLIGHT_TEST_DB_PORT: '3306'
+      PREFLIGHT_TEST_DB_USER: root
+      PREFLIGHT_TEST_DB_PASSWORD: ''
+      PREFLIGHT_TEST_DB_DATABASE: preflight_laravel_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql
+          coverage: none
+      - name: Install Laravel ${{ matrix.laravel }}
+        run: |
+          composer require --dev --no-update "orchestra/testbench:^${{ matrix.testbench }}.0" "pestphp/pest:^${{ matrix.pest }}.0"
+          composer require --no-update "illuminate/console:^${{ matrix.laravel }}.0" "illuminate/database:^${{ matrix.laravel }}.0" "illuminate/support:^${{ matrix.laravel }}.0"
+          composer update --no-interaction --no-progress --with-all-dependencies
+      - run: vendor/bin/pint --test
+        if: matrix.analyse
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+        if: matrix.analyse
+      - run: vendor/bin/pest
