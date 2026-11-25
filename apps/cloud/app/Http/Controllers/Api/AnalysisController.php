@@ -68,7 +68,13 @@ class AnalysisController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        PublishAnalysis::dispatch($analysis);
+        // Without a queue worker (QUEUE_CONNECTION=sync, e.g. a free host), post to GitHub after the response
+        // is sent, so CI isn't kept waiting and a GitHub error can't fail the request.
+        if (config('queue.default') === 'sync') {
+            PublishAnalysis::dispatchAfterResponse($analysis);
+        } else {
+            PublishAnalysis::dispatch($analysis);
+        }
 
         return response()->json([
             'id' => $analysis->id,

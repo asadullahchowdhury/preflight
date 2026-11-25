@@ -21,6 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // GitHub signs webhooks itself (X-Hub-Signature-256).
         $middleware->validateCsrfTokens(except: ['github/webhook']);
 
+        // Behind a hosting proxy that terminates HTTPS (Render, Koyeb…): set TRUSTED_PROXIES=* there so
+        // generated URLs use https. Left unset locally, so forwarded headers aren't trusted by default.
+        $proxies = env('TRUSTED_PROXIES');
+        if (is_string($proxies) && $proxies !== '') {
+            $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+        }
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

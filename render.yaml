@@ -1,0 +1,53 @@
+# Render blueprint for Preflight Cloud (free web service). See docs/DEPLOY.md.
+# Values marked `sync: false` are asked for when you create the blueprint in Render's dashboard.
+services:
+  - type: web
+    name: preflight-cloud
+    runtime: docker
+    plan: free
+    dockerfilePath: apps/cloud/Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - apps/cloud/**
+        - packages/core/src/**
+        - packages/core/composer.json
+        - render.yaml
+    envVars:
+      # Generate locally with: php artisan key:generate --show
+      - key: APP_KEY
+        sync: false
+      - key: APP_NAME
+        value: Preflight
+
+      # MySQL (e.g. Aiven's free plan). DB_SSL_CA_PEM is the CA certificate's text.
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL_CA_PEM
+        sync: false
+
+      # The GitHub App (create it after the first deploy, when you know the URL).
+      - key: GITHUB_APP_ID
+        sync: false
+      - key: GITHUB_APP_SLUG
+        sync: false
+      - key: GITHUB_APP_PRIVATE_KEY
+        sync: false
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false

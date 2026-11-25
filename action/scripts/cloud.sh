@@ -35,7 +35,7 @@ php "$helpers/cloud.php" payload "$PREFLIGHT_JSON" "${PREFLIGHT_PR:-}" "${PREFLI
   || warn "Could not read the report."
 
 response="$(mktemp)"
-status="$(curl -sS -o "$response" -w '%{http_code}' -X POST "$url/api/analyses" \
+status="$(curl -sS --max-time 150 -o "$response" -w '%{http_code}' -X POST "$url/api/analyses" \
   -H "Authorization: Bearer $token" -H 'Content-Type: application/json' -H 'Accept: application/json' \
   --data-binary "@$payload")" || warn "Could not reach $url. Falling back to a comment from the action."
 

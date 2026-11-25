@@ -15,7 +15,7 @@ MVP scope: **Laravel + MySQL 8**, delivered as a GitHub check and PR comment. Th
 
 This is one private monorepo for now. The open-source packages get published later as read-only mirrors via `git subtree split`.
 
-The plan, architecture, data model and milestones are in [docs/PLAN.md](docs/PLAN.md).
+The plan, architecture, data model and milestones are in [docs/PLAN.md](docs/PLAN.md). To put Preflight Cloud online for free (Render + Aiven), follow [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## How it works
 
