@@ -386,3 +386,42 @@ details[open]::details-content {
         transition: none;
     }
 }
+
+/* Copy buttons the docs page adds to each code block. */
+.docs-prose pre {
+    position: relative;
+}
+.docs-copy {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.45rem;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    color: oklch(0.85 0 0);
+    background: oklch(1 0 0 / 0.06);
+    border: 1px solid oklch(1 0 0 / 0.1);
+    opacity: 0;
+    transform: translateY(-2px);
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease,
+        background 0.3s ease;
+    cursor: pointer;
+}
+.docs-prose pre:hover .docs-copy,
+.docs-copy:focus-visible,
+.docs-copy[data-copied] {
+    opacity: 1;
+    transform: none;
+}
+.docs-copy:hover {
+    background: oklch(1 0 0 / 0.12);
+}
+.docs-copy[data-copied] {
+    color: oklch(0.8 0.15 160);
+}
+.docs-prose h2 {
+    scroll-margin-top: 6rem;
+}

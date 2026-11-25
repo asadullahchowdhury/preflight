@@ -28,9 +28,19 @@ function useDolly(ref: RefObject<HTMLElement | null>, depth: number): void {
 
         const rect = element.getBoundingClientRect();
         const viewport = window.innerHeight;
-        const progress = easeOutCubic(
-            clamp((viewport - rect.top) / (viewport * 0.45)),
+        // It settles when its top edge reaches 55% of the way up the screen, or, for blocks near the end of
+        // the page that can never get that high, wherever its top will be once the page is scrolled to the
+        // bottom. Either way it is fully settled by then.
+        const remaining = Math.max(
+            0,
+            document.documentElement.scrollHeight - viewport - window.scrollY,
         );
+        const settleTop = Math.max(viewport * 0.55, rect.top - remaining);
+        const distance = viewport - settleTop;
+        const progress =
+            distance <= 1
+                ? 1
+                : easeOutCubic(clamp((viewport - rect.top) / distance));
         const rest = 1 - progress;
 
         element.style.transform =
