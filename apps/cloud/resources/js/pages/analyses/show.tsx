@@ -13,7 +13,7 @@ import {
     TriangleAlert,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { TimeAgo } from '@/components/preflight/bits';
+import { RichText, TimeAgo } from '@/components/preflight/bits';
 import { Reveal } from '@/components/preflight/motion';
 import {
     SeverityBadge,
@@ -177,7 +177,9 @@ export default function AnalysisShow({
                     <Reveal key={note} delay={80 + i * 40}>
                         <div className="flex gap-3 rounded-2xl glass p-4 text-sm">
                             <Info className="size-4 shrink-0 text-brand" />
-                            <p className="text-muted-foreground">{note}</p>
+                            <p className="text-muted-foreground">
+                                <RichText text={note} />
+                            </p>
                         </div>
                     </Reveal>
                 ))}
@@ -244,7 +246,9 @@ export default function AnalysisShow({
                                                     .dot,
                                             )}
                                         />
-                                        <span>{advisory.message}</span>
+                                        <span>
+                                            <RichText text={advisory.message} />
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
@@ -349,13 +353,13 @@ function StatementCard({ statement }: { statement: Statement }) {
                                     </span>
                                 </div>
                                 <p className="text-sm leading-relaxed">
-                                    {f.message}
+                                    <RichText text={f.message} />
                                 </p>
                                 {f.suggestion && f.severity !== 'info' && (
                                     <div className="flex gap-2.5 rounded-xl border border-brand/20 bg-brand/5 p-3 text-sm">
                                         <Lightbulb className="mt-0.5 size-4 shrink-0 text-brand" />
                                         <p className="leading-relaxed">
-                                            {f.suggestion}
+                                            <RichText text={f.suggestion} />
                                         </p>
                                     </div>
                                 )}
@@ -367,7 +371,7 @@ function StatementCard({ statement }: { statement: Statement }) {
                                 className="flex gap-2 text-sm text-muted-foreground"
                             >
                                 <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                                {a.message}
+                                <RichText text={a.message} />
                             </p>
                         ))}
                     </div>

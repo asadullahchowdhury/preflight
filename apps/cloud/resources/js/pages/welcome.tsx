@@ -10,6 +10,11 @@ import {
 } from 'lucide-react';
 import { LogoMark } from '@/components/app-logo';
 import { GitHubIcon } from '@/components/preflight/bits';
+import {
+    Faq,
+    Pricing,
+    Security,
+} from '@/components/preflight/landing-sections';
 import { AmbientBackground, Reveal } from '@/components/preflight/motion';
 import { SeverityBadge } from '@/components/preflight/severity';
 import { Button } from '@/components/ui/button';
@@ -57,13 +62,39 @@ export default function Welcome() {
                 <AmbientBackground />
 
                 <header className="sticky top-0 z-20">
-                    <div className="mx-3 mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
+                    <div className="mx-3 mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
                         <Link href="/" className="flex items-center gap-2.5">
                             <LogoMark />
                             <span className="font-semibold tracking-tight">
                                 Preflight
                             </span>
                         </Link>
+                        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+                            <a
+                                href="#how"
+                                className="transition-colors hover:text-foreground"
+                            >
+                                How it works
+                            </a>
+                            <a
+                                href="#pricing"
+                                className="transition-colors hover:text-foreground"
+                            >
+                                Pricing
+                            </a>
+                            <a
+                                href="#faq"
+                                className="transition-colors hover:text-foreground"
+                            >
+                                FAQ
+                            </a>
+                            <a
+                                href="/docs"
+                                className="transition-colors hover:text-foreground"
+                            >
+                                Docs
+                            </a>
+                        </nav>
                         {auth.user ? (
                             <Button asChild size="sm">
                                 <Link href={dashboard()}>
@@ -181,10 +212,38 @@ export default function Welcome() {
                             ))}
                         </div>
                     </section>
+
+                    <Pricing signedIn={Boolean(auth.user)} />
+                    <Security />
+                    <Faq />
                 </main>
 
-                <footer className="border-t border-border/50 py-8 text-center text-xs text-muted-foreground">
-                    Preflight · migration safety for Laravel teams
+                <footer className="border-t border-border/50">
+                    <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
+                        <div className="flex items-center gap-2">
+                            <LogoMark className="size-6" />
+                            <span>
+                                Preflight · migration safety for Laravel teams
+                            </span>
+                        </div>
+                        <nav className="flex gap-5">
+                            <a
+                                href="#pricing"
+                                className="hover:text-foreground"
+                            >
+                                Pricing
+                            </a>
+                            <a
+                                href="#security"
+                                className="hover:text-foreground"
+                            >
+                                Security
+                            </a>
+                            <a href="/docs" className="hover:text-foreground">
+                                Docs
+                            </a>
+                        </nav>
+                    </div>
                 </footer>
             </div>
         </>

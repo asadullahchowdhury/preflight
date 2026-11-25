@@ -33,7 +33,7 @@ final class StatementRules implements Rule
         if (in_array($operation->verb, ['UPDATE', 'DELETE'], true) && ! $operation->hasWhere) {
             return new Verdict('data-change', null,
                 "{$operation->verb} without WHERE touches every row of {$table} in a single transaction: rows stay locked until it commits and replicas lag.",
-                'Move the backfill into a queued job that updates in batches (chunkById), or add a WHERE/LIMIT and loop.',
+                Advice::batchedBackfill($operation->table),
                 fixedSeverity: Severity::Warn);
         }
 

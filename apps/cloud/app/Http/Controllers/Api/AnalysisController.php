@@ -39,6 +39,9 @@ class AnalysisController extends Controller
         if (! $repository->installation->isActive()) {
             return response()->json(['message' => 'The Preflight GitHub App installation is suspended.'], 403);
         }
+        if (! $repository->installation->hasBetaAccess()) {
+            return response()->json(['message' => 'Preflight is in private beta and this account is still on the waitlist. The action falls back to its own comment until it is approved.'], 403);
+        }
 
         $payload = $request->validate([
             'server_version' => ['required', 'string', 'max:40'],

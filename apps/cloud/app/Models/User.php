@@ -22,11 +22,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property string|null $avatar_url
  * @property string|null $github_token
+ * @property Carbon|null $approved_at
+ * @property string|null $team_size
+ * @property string|null $waitlist_note
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['github_id', 'github_login', 'name', 'email', 'avatar_url', 'github_token'])]
+#[Fillable(['github_id', 'github_login', 'name', 'email', 'avatar_url', 'github_token', 'team_size', 'waitlist_note'])]
 #[Hidden(['github_token', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -41,7 +44,24 @@ class User extends Authenticatable
         return [
             'github_id' => 'integer',
             'github_token' => 'encrypted',
+            'approved_at' => 'datetime',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        /** @var list<string> $admins */
+        $admins = config('preflight.admins', []);
+
+        return in_array(strtolower($this->github_login), $admins, true);
+    }
+
+    /**
+     * Can use Preflight: the beta is off, or an admin approved them, or they are an admin.
+     */
+    public function hasAccess(): bool
+    {
+        return ! config('preflight.beta') || $this->approved_at !== null || $this->isAdmin();
     }
 
     /**

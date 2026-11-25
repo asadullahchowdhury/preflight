@@ -62,4 +62,21 @@ class Installation extends Model
     {
         return $this->suspended_at === null;
     }
+
+    /**
+     * During the private beta, the cloud only works for installations someone with access can see.
+     */
+    public function hasBetaAccess(): bool
+    {
+        if (! config('preflight.beta')) {
+            return true;
+        }
+
+        /** @var list<string> $admins */
+        $admins = config('preflight.admins', []);
+
+        return $this->users()
+            ->where(fn ($query) => $query->whereNotNull('approved_at')->orWhereIn('github_login', $admins))
+            ->exists();
+    }
 }

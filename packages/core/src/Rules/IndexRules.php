@@ -63,7 +63,7 @@ final class IndexRules implements Rule
 
                 return new Verdict('add-primary-key', Classification::inplaceRebuild(),
                     'Adding a primary key rebuilds the table in place (rows are re-clustered); writes continue.',
-                    Advice::OFF_PEAK);
+                    ColumnRules::online($context));
 
             case Index::FULLTEXT:
                 $first = $table === null || ! $table->hasFulltextIndex();
@@ -80,9 +80,11 @@ final class IndexRules implements Rule
 
             default:
                 $kind = $index->type === Index::UNIQUE ? 'unique index' : 'index';
-                $suggestion = Advice::OFF_PEAK;
+                $suggestion = ColumnRules::online($context);
                 if ($index->type === Index::UNIQUE) {
-                    $suggestion .= ' The build fails (and rolls back) if duplicates exist or are written during it; check for duplicates first.';
+                    $columns = implode(', ', $index->columns);
+                    $suggestion .= ' The build fails (and rolls back) if duplicates exist or are written during it; check first: '
+                        ."`SELECT {$columns}, COUNT(*) FROM {$context->statement->table} GROUP BY {$columns} HAVING COUNT(*) > 1`.";
                 }
 
                 return new Verdict($index->type === Index::UNIQUE ? 'add-unique-index' : 'add-index',

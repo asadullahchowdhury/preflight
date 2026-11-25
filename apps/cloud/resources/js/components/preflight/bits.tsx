@@ -179,3 +179,27 @@ export function TimeAgo({ iso }: { iso: string | null }) {
         </time>
     );
 }
+
+/**
+ * Text from the engine, where `backticks` mark code (names, SQL, PHP). Renders those spans as code.
+ */
+export function RichText({ text }: { text: string }) {
+    const parts = text.split('`');
+
+    return (
+        <>
+            {parts.map((part, i) =>
+                i % 2 === 1 ? (
+                    <code
+                        key={i}
+                        className="rounded bg-muted px-1 py-0.5 font-mono text-[0.85em] break-words text-foreground"
+                    >
+                        {part}
+                    </code>
+                ) : (
+                    <span key={i}>{part}</span>
+                ),
+            )}
+        </>
+    );
+}

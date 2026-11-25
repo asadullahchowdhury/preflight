@@ -22,7 +22,7 @@ class AnalysisApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['preflight.oidc.audience' => 'https://preflight.test']);
+        config(['preflight.oidc.audience' => 'https://preflight.test', 'preflight.beta' => false]);
     }
 
     /**

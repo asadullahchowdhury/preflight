@@ -47,6 +47,8 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'login' => $request->user()->github_login,
                     'avatar' => $request->user()->avatar_url,
+                    'isAdmin' => $request->user()->isAdmin(),
+                    'hasAccess' => $request->user()->hasAccess(),
                 ] : null,
             ],
             'githubInstallUrl' => app(GitHubApp::class)->installUrl(),

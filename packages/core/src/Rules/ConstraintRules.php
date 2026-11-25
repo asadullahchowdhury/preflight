@@ -25,7 +25,7 @@ final class ConstraintRules implements Rule
             if ($context->server->foreignKeyChecks) {
                 return new Verdict('add-foreign-key', Classification::copy(),
                     "Adding foreign key `{$operation->name}` with foreign_key_checks enabled forces ALGORITHM=COPY: the table is copied and writes are blocked until it finishes.",
-                    'Wrap the change in Schema::disableForeignKeyConstraints() / enableForeignKeyConstraints() so MySQL adds the constraint in place (metadata only). Existing rows are then NOT validated, so verify there are no orphans first.');
+                    Advice::foreignKeyWithoutChecks((string) $operation->table, $operation->columns, $operation->references));
             }
 
             return new Verdict('add-foreign-key', Classification::inplaceMetadata(),

@@ -25,7 +25,16 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'avatar_url' => 'https://avatars.githubusercontent.com/u/1?v=4',
             'github_token' => 'gho_'.Str::random(36),
+            'approved_at' => now(),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Signed up during the private beta and not approved yet.
+     */
+    public function waitlisted(): static
+    {
+        return $this->state(fn () => ['approved_at' => null]);
     }
 }

@@ -217,3 +217,112 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Rendered Markdown on /docs. */
+.docs-prose {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--foreground);
+}
+.docs-prose > :first-child {
+    margin-top: 0;
+}
+.docs-prose h1 {
+    font-size: 1.9rem;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+}
+.docs-prose h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2.25rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+}
+.docs-prose h3 {
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+}
+.docs-prose p,
+.docs-prose ul,
+.docs-prose ol,
+.docs-prose pre,
+.docs-prose table {
+    margin: 0.85rem 0;
+}
+.docs-prose p,
+.docs-prose li {
+    color: color-mix(in oklab, var(--foreground) 85%, var(--muted-foreground));
+}
+.docs-prose ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+}
+.docs-prose ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+}
+.docs-prose li + li {
+    margin-top: 0.35rem;
+}
+.docs-prose li > pre {
+    margin: 0.6rem 0;
+}
+.docs-prose a {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(
+        in oklab,
+        var(--color-brand) 40%,
+        transparent
+    );
+}
+.docs-prose strong {
+    font-weight: 600;
+    color: var(--foreground);
+}
+.docs-prose :not(pre) > code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    padding: 0.1em 0.35em;
+    border-radius: 0.35rem;
+    background: var(--muted);
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+}
+.docs-prose pre {
+    background: oklch(0.17 0 0);
+    color: oklch(0.95 0 0);
+    border-radius: 0.85rem;
+    padding: 1rem 1.15rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    border: 1px solid oklch(1 0 0 / 0.08);
+}
+.docs-prose pre code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.docs-prose table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.docs-prose th,
+.docs-prose td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    text-align: left;
+    vertical-align: top;
+}
+.docs-prose th {
+    font-weight: 600;
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+}

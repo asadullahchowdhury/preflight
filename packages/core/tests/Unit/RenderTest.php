@@ -50,7 +50,7 @@ it('renders a markdown PR comment', function () {
         ->toContain('<br><sub>2026_01_01_widen_status</sub>')
         ->toContain('COPY · **blocks writes** · rebuilds table')
         ->toContain("```sql\nalter table `orders` modify")
-        ->toContain('  - 💡 Add a new column')
+        ->toContain('  - 💡 Expand and contract instead: (1) add `status_new`')
         ->toContain('safe statements</summary>')
         // pipes inside SQL must not break the table
         ->toContain("'a &#124; b'")

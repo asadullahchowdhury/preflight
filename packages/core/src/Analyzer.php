@@ -19,6 +19,7 @@ use Preflight\Core\Report\LockLevel;
 use Preflight\Core\Report\Report;
 use Preflight\Core\Report\Severity;
 use Preflight\Core\Report\StatementResult;
+use Preflight\Core\Rules\Advice;
 use Preflight\Core\Rules\ColumnRules;
 use Preflight\Core\Rules\ConstraintRules;
 use Preflight\Core\Rules\IndexRules;
@@ -275,7 +276,7 @@ final class Analyzer
 
         foreach ($touched as $table) {
             $advisories[] = new Advisory('mdl-wait', Severity::Info,
-                "Every ALTER on `{$table['name']}`, even an instant one, needs a brief exclusive metadata lock. It waits behind any open transaction on the table, and all new queries queue behind it. Set a short lock_wait_timeout (e.g. 5s) for the migration session and retry on timeout.",
+                "Every ALTER on `{$table['name']}`, even an instant one, needs a brief exclusive metadata lock. It waits behind any open transaction on the table, and all new queries queue behind it. ".Advice::lockWaitTimeout(),
                 $table['name']);
         }
 

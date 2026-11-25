@@ -125,6 +125,21 @@ class DemoSeeder extends Seeder
             'avatar_url' => null,
             'github_token' => null,
         ]);
+        $user->forceFill(['approved_at' => $user->approved_at ?? now()])->save();
+
+        // People waiting for the private beta, for the admin page (the demo user is an admin locally
+        // when PREFLIGHT_ADMINS includes "demo").
+        $waiting = [
+            ['priya-dev', 'Priya Sharma', '11-50', 'Our 60M-row events table: every ->change() is a gamble.', 2],
+            ['tomasz', 'Tomasz Nowak', '2-10', 'Adding foreign keys to old tables without downtime.', 5],
+            ['lin-ops', 'Lin Chen', '51-200', null, 9],
+        ];
+        foreach ($waiting as $i => [$login, $name, $size, $note, $daysAgo]) {
+            $person = User::query()->updateOrCreate(['github_login' => $login], [
+                'github_id' => 900 + $i, 'name' => $name, 'team_size' => $size, 'waitlist_note' => $note,
+            ]);
+            $person->forceFill(['created_at' => now()->subDays($daysAgo)])->save();
+        }
 
         $acme = Installation::query()->updateOrCreate(['github_id' => 1001], [
             'account_id' => 2001, 'account_login' => 'acme', 'account_type' => 'Organization', 'repository_selection' => 'selected',

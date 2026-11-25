@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Plus } from 'lucide-react';
+import { LayoutGrid, Plus, UsersRound } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,18 +14,23 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { beta as betaAdmin } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
 export function AppSidebar() {
-    const { githubInstallUrl } = usePage<{ githubInstallUrl: string }>().props;
+    const { githubInstallUrl, auth } = usePage<{ githubInstallUrl: string }>()
+        .props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        ...(auth.user.isAdmin
+            ? [{ title: 'Beta access', href: betaAdmin(), icon: UsersRound }]
+            : []),
+    ];
 
     const footerNavItems: NavItem[] = [
         {

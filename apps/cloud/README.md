@@ -19,6 +19,8 @@ php artisan migrate
 composer run dev            # or: php artisan serve + npm run dev
 ```
 
+**Laragon (`http://preflight.test`).** Laragon's automatic vhost serves the repository root, but the app's web root is `apps/cloud/public`. Rename `D:\laragon\etc\nginx\sites-enabled\auto.preflight.test.conf` to `preflight.test.conf` (without `auto.`, so Laragon stops regenerating it), set its `root` to `D:/laragon/www/preflight/apps/cloud/public`, and reload Laragon. For Apache, do the same in `etc\apache2\sites-enabled`. Then either keep `npm run dev` running or run `npm run build` once.
+
 **No GitHub App yet?** Set `PREFLIGHT_DEV_LOGIN=true` (with `APP_ENV=local`), open `/login` and choose **Explore the demo**. That signs you in as a demo user with seeded repositories and checks produced by the real engine. The route doesn't exist outside `APP_ENV=local`.
 
 ## The GitHub App
@@ -72,6 +74,14 @@ The action requests an OIDC token for the audience `cloud-url`, which must equal
 The PR number comes from the token's `ref` claim, not from the request body.
 
 If the cloud can't be reached, the action falls back to commenting itself, so CI never depends on the cloud being up.
+
+## Private beta
+
+While `PREFLIGHT_BETA=true` (the default), people who sign in join a waitlist and see only the waitlist page, where they can tell you their team size and what they'd check first. Admins are approved automatically. They are the GitHub usernames in `PREFLIGHT_ADMINS` (comma-separated), and they approve people, or move them back to the waitlist, on **Beta access** (`/admin/beta`). CI reports are accepted only from installations that an approved user can see. Set `PREFLIGHT_BETA=false` to open access to everyone.
+
+## Docs
+
+`/docs` is public and renders the Markdown files in `resources/docs`. Add a page by creating the file and listing it in `DocsController::PAGES`.
 
 ## Production table sizes
 

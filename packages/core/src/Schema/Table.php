@@ -69,6 +69,17 @@ final class Table
         return null;
     }
 
+    public function fulltextIndex(): ?Index
+    {
+        foreach ($this->indexes as $index) {
+            if ($index->type === Index::FULLTEXT) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
     public function hasFulltextIndex(): bool
     {
         foreach ($this->indexes as $index) {

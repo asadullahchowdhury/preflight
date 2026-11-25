@@ -32,6 +32,17 @@ return [
     ],
 
     /*
+    | Private beta. While on, people who sign in join a waitlist; an admin approves them on /admin/beta.
+    | Admins are GitHub usernames (comma-separated) and are always approved.
+    */
+    'beta' => (bool) env('PREFLIGHT_BETA', true),
+
+    'admins' => array_values(array_filter(array_map(
+        static fn (string $login) => strtolower(trim($login)),
+        explode(',', (string) env('PREFLIGHT_ADMINS', '')),
+    ))),
+
+    /*
     | Local only: sign in as a demo user without GitHub (`/dev/login`), to work on the dashboard.
     | Ignored outside the local environment.
     */

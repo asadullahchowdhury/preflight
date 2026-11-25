@@ -4,6 +4,8 @@ export type User = {
     email: string | null;
     login: string;
     avatar?: string | null;
+    isAdmin?: boolean;
+    hasAccess?: boolean;
     [key: string]: unknown;
 };
 

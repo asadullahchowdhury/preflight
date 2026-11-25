@@ -33,7 +33,7 @@ final class ColumnRules implements Rule
         return match (true) {
             $operation instanceof AddColumn => $this->add($operation, $context),
             $operation instanceof DropColumn => $this->drop($operation, $context),
-            $operation instanceof RenameColumn => $this->rename($context),
+            $operation instanceof RenameColumn => $this->rename($operation, $context),
             $operation instanceof ModifyColumn => $this->modify($operation, $context),
             $operation instanceof AlterColumn => $this->alterColumn($operation, $context),
             default => throw new \LogicException('Unsupported operation'),
@@ -55,7 +55,7 @@ final class ColumnRules implements Rule
         if ($table !== null && $table->hasFulltextIndex()) {
             return new Verdict('add-column', Classification::copy(),
                 "`{$table->name}` has a FULLTEXT index, so MySQL can't add columns instantly or in place: it copies the table (ALGORITHM=COPY) and blocks writes.",
-                Advice::blocking('Drop the FULLTEXT index first and re-add it afterwards, or schedule a maintenance window.'));
+                Advice::fulltextBlocksAddColumn($table->name, $table->fulltextIndex()?->name, $table->fulltextIndex()?->columns[0] ?? null));
         }
 
         if ($column->autoIncrement || $column->inlinePrimaryKey) {
@@ -67,7 +67,7 @@ final class ColumnRules implements Rule
         if ($column->inlineUnique) {
             return new Verdict('add-column', Classification::inplaceRebuild(),
                 'Adding a column with an inline UNIQUE index rebuilds the table in place; writes continue.',
-                'Add the column first (instant), then the unique index in a separate statement. '.Advice::OFF_PEAK);
+                "Add `{$column->name}` without ->unique() (instant), then add `\$table->unique('{$column->name}')` in a separate statement, which builds online. ".Advice::OFF_PEAK);
         }
 
         if ($column->isGenerated()) {
@@ -89,7 +89,7 @@ final class ColumnRules implements Rule
         if ($reason !== null) {
             $suggestion = $op->position !== null && $server->supportsInstant()
                 ? 'Drop the ->after()/->first() so the column is appended at the end; that is instant on MySQL 8.0.12+.'
-                : Advice::OFF_PEAK;
+                : self::online($context);
 
             return new Verdict('add-column', Classification::inplaceRebuild(),
                 "Rebuilds the whole table in place: {$reason}. Writes continue during the rebuild.",
@@ -104,7 +104,7 @@ final class ColumnRules implements Rule
     {
         $server = $context->server;
         $table = $context->table;
-        $suggestion = "Deploy code that no longer reads or writes `{$op->column}` before running this migration (and remove it from \$fillable/\$casts). The data is gone once dropped.";
+        $suggestion = Advice::dropColumn($op->column);
 
         $reason = null;
         if (! $server->supportsInstantAnyPosition()) {
@@ -125,9 +125,9 @@ final class ColumnRules implements Rule
             'Drops the column instantly (metadata only).', $suggestion, destructive: true);
     }
 
-    private function rename(RuleContext $context): Verdict
+    private function rename(RenameColumn $op, RuleContext $context): Verdict
     {
-        $suggestion = 'Code still using the old name fails as soon as this runs; ship the rename together with the code change, or add the new column and migrate in steps.';
+        $suggestion = Advice::renameColumn($op->from, $op->to);
 
         return $context->server->supportsInstantRenameColumn()
             ? new Verdict('rename-column', Classification::instant(), 'Renames the column instantly (metadata only).', $suggestion, destructive: true)
@@ -156,18 +156,29 @@ final class ColumnRules implements Rule
         if ($classification->algorithm === Algorithm::Copy) {
             return new Verdict('modify-column', $classification,
                 "Changes `{$op->from}` ({$changes}). This forces ALGORITHM=COPY: the table is copied row by row and writes are blocked until it finishes.",
-                Advice::EXPAND_CONTRACT, destructive: $op->renames());
+                Advice::expandContract($table->name, $op->from), destructive: $op->renames());
         }
 
         if ($classification->rebuildsTable()) {
             return new Verdict('modify-column', $classification,
                 "Changes `{$op->from}` ({$changes}). The {$diff->reason} rebuilds the whole table in place; writes continue.",
-                Advice::OFF_PEAK, destructive: $op->renames());
+                self::online($context), destructive: $op->renames());
         }
 
         return new Verdict('modify-column', $classification,
             "Changes `{$op->from}` ({$changes}): metadata only.",
             destructive: $op->renames());
+    }
+
+    /**
+     * Advice for work MySQL does online (INPLACE, LOCK=NONE). When the statement is just this one clause, show
+     * how to pin the algorithm so it can never fall back to a locking copy.
+     */
+    public static function online(RuleContext $context): string
+    {
+        return count($context->statement->operations) === 1
+            ? Advice::pinOnline($context->statement->sql)
+            : Advice::OFF_PEAK;
     }
 
     private function moves(ModifyColumn $op, Table $table): bool
