@@ -40,7 +40,7 @@ const line = {
 
 /**
  * The footer's backdrop: a wireframe of the Preflight paper plane leaving a dotted trail that ends in
- * the logo's check mark, a wireframe database, speed streaks and soft sparks over a dot grid. The plane
+ * the logo's check mark, a wireframe database, speed streaks and soft sparks. The plane
  * flies in as the footer scrolls into view.
  */
 export function FooterArt() {
@@ -81,9 +81,6 @@ export function FooterArt() {
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10 overflow-hidden select-none"
         >
-            {/* Dot grid, fading out towards the top and bottom. */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,color-mix(in_oklab,var(--foreground)_9%,transparent)_1px,transparent_0)] [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_70%,transparent)] bg-[size:22px_22px]" />
-
             {/* The paper plane and its trail, top right (over the sparse Account column). */}
             <div
                 ref={plane}
