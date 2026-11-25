@@ -130,12 +130,12 @@ export function SiteFooter() {
                 </div>
             </div>
 
-            {/* The closing shot: a huge, faded wordmark, cropped by the bottom edge. */}
+            {/* The closing shot: a huge, faded wordmark. Shown whole: cropping it cuts the tail off the "g". */}
             <div
                 aria-hidden
-                className="pointer-events-none -mt-4 flex h-[clamp(3.5rem,13vw,9.5rem)] items-start justify-center overflow-hidden select-none"
+                className="pointer-events-none -mt-2 flex justify-center overflow-hidden px-2 pb-[clamp(0.5rem,2vw,1.5rem)] select-none"
             >
-                <span className="-translate-y-[8%] bg-gradient-to-b from-foreground/[0.11] via-brand/[0.07] to-transparent bg-clip-text text-[clamp(4.5rem,19vw,14rem)] leading-[0.9] font-semibold tracking-tighter text-transparent">
+                <span className="block bg-gradient-to-b from-foreground/[0.13] via-brand/[0.09] to-foreground/[0.04] bg-clip-text pb-[0.12em] text-[clamp(4.5rem,19vw,14rem)] leading-[1] font-semibold tracking-tighter text-transparent">
                     Preflight
                 </span>
             </div>
