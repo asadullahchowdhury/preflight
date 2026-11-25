@@ -166,7 +166,7 @@ export default function RepositoryShow({
                         )}
 
                         {hasAnalyses ? (
-                            <Reveal delay={180}>
+                            <Reveal delay={180} dolly={0.5}>
                                 <ul className="divide-y divide-border/60 overflow-hidden rounded-2xl glass">
                                     {analyses.data.map((analysis) => (
                                         <AnalysisRow

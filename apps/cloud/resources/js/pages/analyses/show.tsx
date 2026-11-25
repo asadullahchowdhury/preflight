@@ -201,6 +201,7 @@ export default function AnalysisShow({
                         <Reveal
                             key={group.migration ?? g}
                             delay={140 + g * 80}
+                            dolly={0.5}
                             as="section"
                             className="space-y-3"
                         >

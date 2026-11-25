@@ -180,6 +180,7 @@ export default function Dashboard({
                                         <Reveal
                                             key={repository.id}
                                             delay={340 + i * 50}
+                                            dolly={0.6}
                                         >
                                             <RepositoryCard
                                                 repository={repository}
@@ -194,10 +195,10 @@ export default function Dashboard({
                             <Reveal delay={360}>
                                 <SectionTitle title="Recent checks" />
                             </Reveal>
-                            <Reveal delay={420}>
+                            <Reveal delay={420} dolly={0.5}>
                                 <RecentAnalyses analyses={recentAnalyses} />
                             </Reveal>
-                            <Reveal delay={480}>
+                            <Reveal delay={480} dolly={0.5}>
                                 <Accounts installations={installations} />
                             </Reveal>
                         </section>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, ElementType, ReactNode } from 'react';
+import type { CSSProperties, ElementType, ReactNode, RefObject } from 'react';
 import {
     clamp,
     easeOutCubic,
@@ -9,8 +9,43 @@ import {
 import { cn } from '@/lib/utils';
 
 /**
+ * Scrubs the dolly effect on `ref` for the current scroll position: the element travels in from depth
+ * (smaller, tilted back, blurred) and settles as its top edge reaches 55% of the way up the screen.
+ */
+function useDolly(ref: RefObject<HTMLElement | null>, depth: number): void {
+    useScrollFrame(() => {
+        const element = ref.current;
+        if (!element) {
+            return;
+        }
+        if (prefersReducedMotion() || depth === 0) {
+            element.style.transform = '';
+            element.style.opacity = '';
+            element.style.filter = '';
+
+            return;
+        }
+
+        const rect = element.getBoundingClientRect();
+        const viewport = window.innerHeight;
+        const progress = easeOutCubic(
+            clamp((viewport - rect.top) / (viewport * 0.45)),
+        );
+        const rest = 1 - progress;
+
+        element.style.transform =
+            rest > 0.001
+                ? `perspective(1400px) translate3d(0, ${rest * 70 * depth}px, ${rest * -220 * depth}px) rotateX(${rest * 9 * depth}deg) scale(${1 - rest * 0.06 * depth})`
+                : '';
+        element.style.opacity = rest > 0.001 ? String(1 - rest * 0.85) : '';
+        element.style.filter = rest > 0.01 ? `blur(${rest * 5 * depth}px)` : '';
+    });
+}
+
+/**
  * Fades content in from a soft blur when it scrolls into view (immediately for content already on screen).
- * Stagger siblings with `delay` (ms).
+ * Stagger siblings with `delay` (ms). With `dolly`, it also travels in from depth as you scroll
+ * (0.5 = subtle, 1 = normal).
  */
 export function Reveal({
     children,
@@ -18,15 +53,20 @@ export function Reveal({
     className,
     as: Component = 'div',
     fast = false,
+    dolly = 0,
 }: {
     children: ReactNode;
     delay?: number;
     className?: string;
     as?: ElementType;
     fast?: boolean;
+    dolly?: number;
 }) {
     const ref = useRef<HTMLElement>(null);
+    const inner = useRef<HTMLDivElement>(null);
     const [shown, setShown] = useState(false);
+
+    useDolly(inner, dolly);
 
     useEffect(() => {
         const element = ref.current;
@@ -65,7 +105,18 @@ export function Reveal({
             )}
             style={style}
         >
-            {children}
+            {dolly > 0 ? (
+                // The depth effect lives on an inner layer, so it doesn't fight the fade-in animation.
+                <div
+                    ref={inner}
+                    className="h-full will-change-transform"
+                    style={{ transformOrigin: '50% 100%' }}
+                >
+                    {children}
+                </div>
+            ) : (
+                children
+            )}
         </Component>
     );
 }
@@ -86,31 +137,7 @@ export function Dolly({
 }) {
     const ref = useRef<HTMLDivElement>(null);
 
-    useScrollFrame(() => {
-        const element = ref.current;
-        if (!element) {
-            return;
-        }
-        if (prefersReducedMotion() || depth === 0) {
-            element.style.transform = '';
-            element.style.opacity = '';
-            element.style.filter = '';
-
-            return;
-        }
-
-        const rect = element.getBoundingClientRect();
-        const viewport = window.innerHeight;
-        // 0 when the top edge enters at the bottom of the screen, 1 once it reaches 55% of the way up.
-        const progress = easeOutCubic(
-            clamp((viewport - rect.top) / (viewport * 0.45)),
-        );
-        const rest = 1 - progress;
-
-        element.style.transform = `perspective(1400px) translate3d(0, ${rest * 70 * depth}px, ${rest * -220 * depth}px) rotateX(${rest * 9 * depth}deg) scale(${1 - rest * 0.06 * depth})`;
-        element.style.opacity = String(0.15 + progress * 0.85);
-        element.style.filter = rest > 0.01 ? `blur(${rest * 5}px)` : '';
-    });
+    useDolly(ref, depth);
 
     return (
         <div

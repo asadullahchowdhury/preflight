@@ -36,7 +36,22 @@ export function useSmoothScroll(): void {
         };
         frame = requestAnimationFrame(loop);
 
+        // Dialogs, sheets and menus lock page scrolling (react-remove-scroll marks <body>); pause meanwhile.
+        const syncLock = () => {
+            if (document.body.hasAttribute('data-scroll-locked')) {
+                instance.stop();
+            } else {
+                instance.start();
+            }
+        };
+        const observer = new MutationObserver(syncLock);
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['data-scroll-locked'],
+        });
+
         return () => {
+            observer.disconnect();
             cancelAnimationFrame(frame);
             instance.destroy();
             lenis = null;
