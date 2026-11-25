@@ -21,9 +21,12 @@ export type HeaderLink = {
 export function SiteHeader({
     links,
     badge,
+    showAction = true,
 }: {
     links: HeaderLink[];
     badge?: string;
+    /** The Sign in / Dashboard button (hidden on pages where it would loop back, like sign-in itself). */
+    showAction?: boolean;
 }) {
     const { auth } = usePage().props;
     const [scrolled, setScrolled] = useState(false);
@@ -163,8 +166,16 @@ export function SiteHeader({
                     ))}
                 </nav>
 
-                <div className="flex items-center gap-2">
-                    <div className="hidden sm:block">{action}</div>
+                <div
+                    className={cn(
+                        'flex items-center gap-2',
+                        // Without a button, only the phone menu lives here; on desktop the links move right.
+                        !showAction && 'md:hidden',
+                    )}
+                >
+                    {showAction && (
+                        <div className="hidden sm:block">{action}</div>
+                    )}
                     <button
                         type="button"
                         onClick={() => setOpen((value) => !value)}
@@ -214,11 +225,13 @@ export function SiteHeader({
                             {link.label}
                         </a>
                     ))}
-                    <div className="mt-1 border-t border-border/60 p-2 pt-3 sm:hidden">
-                        <div className="[&_a]:w-full [&>*]:w-full">
-                            {action}
+                    {showAction && (
+                        <div className="mt-1 border-t border-border/60 p-2 pt-3 sm:hidden">
+                            <div className="[&_a]:w-full [&>*]:w-full">
+                                {action}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </nav>
             </div>
         </header>
