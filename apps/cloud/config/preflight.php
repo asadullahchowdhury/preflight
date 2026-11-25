@@ -52,6 +52,12 @@ return [
     | Search and link-preview defaults (resources/views/partials/seo.blade.php). Pages can override the
     | title, description and canonical path with ->withViewData(['meta' => [...]]).
     */
+    // Who makes Preflight: the footer credit, <meta name="author"> and the structured data's creator.
+    'author' => [
+        'name' => 'Rahat Chowdhury',
+        'url' => 'https://github.com/asadullahchowdhury',
+    ],
+
     'seo' => [
         'tagline' => 'Catch table-locking migrations before they ship',
         'description' => 'Preflight reviews every Laravel migration in your pull requests and tells you how MySQL will run it: instantly, in place, or by copying the table while writes wait. With production table sizes, duration estimates and a safer rewrite.',

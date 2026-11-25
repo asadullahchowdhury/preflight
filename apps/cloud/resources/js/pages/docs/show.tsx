@@ -6,6 +6,7 @@ import {
     Reveal,
     ScrollProgress,
 } from '@/components/preflight/motion';
+import { MadeBy } from '@/components/preflight/made-by';
 import { SiteHeader } from '@/components/preflight/site-header';
 import type { HeaderLink } from '@/components/preflight/site-header';
 import {
@@ -154,6 +155,8 @@ export default function DocsShow({
                                 </Reveal>
                             )}
                         </div>
+
+                        <MadeBy className="mt-10 text-center text-xs" />
                     </main>
 
                     {sections.length > 1 && (

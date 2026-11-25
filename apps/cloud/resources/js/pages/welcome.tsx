@@ -22,6 +22,7 @@ import {
     ScrollProgress,
 } from '@/components/preflight/motion';
 import { SeverityBadge } from '@/components/preflight/severity';
+import { MadeBy } from '@/components/preflight/made-by';
 import { SiteHeader } from '@/components/preflight/site-header';
 import type { HeaderLink } from '@/components/preflight/site-header';
 import { Button } from '@/components/ui/button';
@@ -270,11 +271,15 @@ export default function Welcome() {
 
                 <footer className="border-t border-border/50 bg-background/40 backdrop-blur-md">
                     <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
-                        <div className="flex items-center gap-2">
-                            <LogoMark className="size-6" />
-                            <span>
-                                Preflight · migration safety for Laravel teams
-                            </span>
+                        <div className="flex flex-col items-center gap-1 sm:items-start">
+                            <div className="flex items-center gap-2">
+                                <LogoMark className="size-6" />
+                                <span>
+                                    Preflight · migration safety for Laravel
+                                    teams
+                                </span>
+                            </div>
+                            <MadeBy className="text-xs sm:pl-8" />
                         </div>
                         <nav className="flex gap-5">
                             {headerLinks

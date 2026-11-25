@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'author' => config('preflight.author'),
             'auth' => [
                 'user' => $request->user() instanceof User ? [
                     'id' => $request->user()->id,

@@ -24,6 +24,17 @@ class SeoTest extends TestCase
             ->assertSee('"@type":"SoftwareApplication","name"', false);
     }
 
+    public function test_the_maker_is_credited(): void
+    {
+        config(['preflight.author' => ['name' => 'Rahat Chowdhury', 'url' => 'https://github.com/asadullahchowdhury']]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('<meta name="author" content="Rahat Chowdhury">', false)
+            ->assertSee('<link rel="author" href="https://github.com/asadullahchowdhury">', false)
+            ->assertSee('"creator":{"@type":"Person","name":"Rahat Chowdhury","url":"https://github.com/asadullahchowdhury"', false)
+            ->assertInertia(fn ($page) => $page->where('author.name', 'Rahat Chowdhury'));
+    }
+
     public function test_docs_pages_describe_themselves(): void
     {
         $this->get('/docs')->assertOk()

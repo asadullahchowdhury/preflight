@@ -11,6 +11,13 @@
     $canonical = url($meta['path'] ?? request()->path());
     $image = url($seo['image']);
     $indexable = request()->routeIs(...$seo['indexable_routes']);
+    $author = config('preflight.author');
+    $person = array_filter([
+        '@type' => 'Person',
+        'name' => $author['name'],
+        'url' => $author['url'] ?? null,
+        'sameAs' => isset($author['url']) ? [$author['url']] : null,
+    ]);
 
     // Structured data, built here: Blade would read "@context" in the template as a directive.
     $structuredData = [];
@@ -27,6 +34,8 @@
                     'applicationCategory' => 'DeveloperApplication',
                     'operatingSystem' => 'Any (runs in GitHub Actions)',
                     'image' => $image,
+                    'author' => $person,
+                    'creator' => $person,
                     'offers' => [
                         ['@type' => 'Offer', 'name' => 'Free', 'price' => '0', 'priceCurrency' => 'USD'],
                         ['@type' => 'Offer', 'name' => 'Pro', 'price' => '29', 'priceCurrency' => 'USD'],
@@ -57,6 +66,10 @@
 <meta name="description" content="{{ $description }}">
 <meta name="robots" content="{{ $indexable ? 'index, follow' : 'noindex, nofollow' }}">
 <meta name="application-name" content="{{ $appName }}">
+<meta name="author" content="{{ $author['name'] }}">
+@if (! empty($author['url']))
+    <link rel="author" href="{{ $author['url'] }}">
+@endif
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0b0b0e" media="(prefers-color-scheme: dark)">
 @if ($indexable)
