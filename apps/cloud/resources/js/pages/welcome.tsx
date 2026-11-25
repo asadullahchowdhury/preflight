@@ -6,8 +6,8 @@ import {
     KeyRound,
     Lightbulb,
     ScanSearch,
-    ShieldCheck,
 } from 'lucide-react';
+import { useRef } from 'react';
 import { LogoMark } from '@/components/app-logo';
 import { GitHubIcon } from '@/components/preflight/bits';
 import {
@@ -15,9 +15,23 @@ import {
     Pricing,
     Security,
 } from '@/components/preflight/landing-sections';
-import { AmbientBackground, Reveal } from '@/components/preflight/motion';
+import {
+    AmbientBackground,
+    Dolly,
+    Reveal,
+    ScrollProgress,
+} from '@/components/preflight/motion';
 import { SeverityBadge } from '@/components/preflight/severity';
+import { SiteHeader } from '@/components/preflight/site-header';
+import type { HeaderLink } from '@/components/preflight/site-header';
 import { Button } from '@/components/ui/button';
+import {
+    clamp,
+    prefersReducedMotion,
+    scrollToTarget,
+    useScrollFrame,
+    useSmoothScroll,
+} from '@/hooks/use-cinematic-scroll';
 import { dashboard, login } from '@/routes';
 
 const features = [
@@ -52,75 +66,69 @@ const steps = [
     ],
 ];
 
+const headerLinks: HeaderLink[] = [
+    { label: 'How it works', href: '#how' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Security', href: '#security' },
+    { label: 'FAQ', href: '#faq' },
+    { label: 'Docs', href: '/docs' },
+];
+
 export default function Welcome() {
     const { auth } = usePage().props;
+    const heroText = useRef<HTMLDivElement>(null);
+    const heroCard = useRef<HTMLDivElement>(null);
+
+    useSmoothScroll();
+
+    // The opening shot: as you scroll, the headline drifts back into the distance while the PR card
+    // swings flat and comes towards you (a camera dolly), and the background zooms behind them.
+    useScrollFrame(() => {
+        const text = heroText.current;
+        const card = heroCard.current;
+        if (!text || !card) {
+            return;
+        }
+        if (prefersReducedMotion()) {
+            text.style.transform = card.style.transform = '';
+
+            return;
+        }
+
+        const p = clamp(window.scrollY / (window.innerHeight * 0.85));
+        const wide = window.innerWidth >= 1024;
+
+        text.style.transform = `translate3d(0, ${p * -50}px, 0) scale(${1 - p * 0.07})`;
+        text.style.opacity = String(1 - p * 0.75);
+        text.style.filter = p > 0.01 ? `blur(${p * 6}px)` : '';
+
+        card.style.transform = wide
+            ? `perspective(1600px) translate3d(0, ${p * -30}px, ${p * 90}px) rotateX(${(1 - p) * 8}deg) rotateY(${(1 - p) * -14}deg) rotateZ(${(1 - p) * 1.5}deg)`
+            : `translate3d(0, ${p * -20}px, 0) scale(${1 + p * 0.04})`;
+    });
 
     return (
         <>
             <Head title="Catch table-locking migrations before they ship" />
+            <ScrollProgress />
+            <SiteHeader links={headerLinks} />
+
             <div className="relative isolate min-h-svh overflow-x-clip">
-                <AmbientBackground />
-
-                <header className="sticky top-0 z-20">
-                    <div className="mx-3 mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
-                        <Link href="/" className="flex items-center gap-2.5">
-                            <LogoMark />
-                            <span className="font-semibold tracking-tight">
-                                Preflight
-                            </span>
-                        </Link>
-                        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-                            <a
-                                href="#how"
-                                className="transition-colors hover:text-foreground"
-                            >
-                                How it works
-                            </a>
-                            <a
-                                href="#pricing"
-                                className="transition-colors hover:text-foreground"
-                            >
-                                Pricing
-                            </a>
-                            <a
-                                href="#faq"
-                                className="transition-colors hover:text-foreground"
-                            >
-                                FAQ
-                            </a>
-                            <a
-                                href="/docs"
-                                className="transition-colors hover:text-foreground"
-                            >
-                                Docs
-                            </a>
-                        </nav>
-                        {auth.user ? (
-                            <Button asChild size="sm">
-                                <Link href={dashboard()}>
-                                    Dashboard
-                                    <ArrowRight className="size-4" />
-                                </Link>
-                            </Button>
-                        ) : (
-                            <Button asChild size="sm">
-                                <Link href={login()}>Sign in</Link>
-                            </Button>
-                        )}
-                    </div>
-                </header>
-
+                <AmbientBackground fixed />
                 <main className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <section className="grid grid-cols-1 items-center gap-12 pt-16 pb-20 sm:pt-24 lg:grid-cols-2 lg:gap-16">
-                        <div>
+                    <section className="grid min-h-[92svh] grid-cols-1 items-center gap-12 pt-32 pb-16 sm:pt-36 lg:grid-cols-2 lg:gap-16">
+                        <div ref={heroText} className="will-change-transform">
                             <Reveal>
                                 <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-muted-foreground">
-                                    <ShieldCheck className="size-3.5 text-brand" />
-                                    For Laravel and MySQL 8
+                                    <span className="relative flex size-2">
+                                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                                        <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+                                    </span>
+                                    Private beta · For Laravel and MySQL 8
                                 </span>
                             </Reveal>
                             <Reveal delay={80}>
-                                <h1 className="mt-5 text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                                <h1 className="mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[4rem]">
                                     Catch the migration that{' '}
                                     <span className="text-gradient">
                                         locks production
@@ -129,7 +137,7 @@ export default function Welcome() {
                                 </h1>
                             </Reveal>
                             <Reveal delay={160}>
-                                <p className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground">
+                                <p className="mt-6 max-w-xl text-lg text-pretty text-muted-foreground">
                                     Preflight reviews every pull request that
                                     touches your migrations and tells you
                                     whether MySQL will copy the table and block
@@ -138,12 +146,12 @@ export default function Welcome() {
                             </Reveal>
                             <Reveal
                                 delay={240}
-                                className="mt-8 flex flex-col gap-3 sm:flex-row"
+                                className="mt-9 flex flex-col gap-3 sm:flex-row"
                             >
                                 <Button
                                     asChild
                                     size="lg"
-                                    className="h-12 px-6 text-[15px]"
+                                    className="group h-12 rounded-full px-6 text-[15px] shadow-lg shadow-brand/20"
                                 >
                                     <Link
                                         href={auth.user ? dashboard() : login()}
@@ -152,65 +160,107 @@ export default function Welcome() {
                                         {auth.user
                                             ? 'Go to dashboard'
                                             : 'Start with GitHub'}
+                                        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                                     </Link>
                                 </Button>
                                 <Button
                                     asChild
                                     size="lg"
                                     variant="outline"
-                                    className="h-12 glass px-6 text-[15px]"
+                                    className="h-12 rounded-full glass px-6 text-[15px]"
                                 >
-                                    <a href="#how">How it works</a>
+                                    <a
+                                        href="#how"
+                                        onClick={(event) => {
+                                            event.preventDefault();
+                                            scrollToTarget('#how');
+                                        }}
+                                    >
+                                        How it works
+                                    </a>
                                 </Button>
                             </Reveal>
                         </div>
 
                         <Reveal delay={320}>
-                            <PullRequestPreview />
+                            <div
+                                ref={heroCard}
+                                className="will-change-transform [transform-style:preserve-3d]"
+                            >
+                                <PullRequestPreview />
+                            </div>
                         </Reveal>
                     </section>
 
-                    <section className="grid grid-cols-1 gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-4">
-                        {features.map((feature, i) => (
-                            <Reveal key={feature.title} delay={100 + i * 80}>
-                                <div className="group h-full rounded-2xl glass p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-brand/20 transition-transform duration-500 group-hover:scale-110">
-                                        <feature.icon className="size-5" />
-                                    </div>
-                                    <h3 className="mt-4 font-medium">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="mt-1.5 text-sm text-muted-foreground">
-                                        {feature.body}
-                                    </p>
-                                </div>
-                            </Reveal>
-                        ))}
+                    <a
+                        href="#features"
+                        onClick={(event) => {
+                            event.preventDefault();
+                            scrollToTarget('#features');
+                        }}
+                        aria-label="Scroll down"
+                        className="mx-auto -mt-4 mb-16 hidden w-fit flex-col items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground lg:flex"
+                    >
+                        <span className="flex h-9 w-5.5 justify-center rounded-full border border-current/40 pt-1.5">
+                            <span className="h-2 w-0.5 animate-bounce rounded-full bg-current" />
+                        </span>
+                        Scroll
+                    </a>
+
+                    <section id="features" className="scroll-mt-24 pb-28">
+                        <Dolly>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {features.map((feature, i) => (
+                                    <Reveal key={feature.title} delay={i * 80}>
+                                        <div className="group h-full rounded-2xl glass p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand/5">
+                                            <div className="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-brand/20 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">
+                                                <feature.icon className="size-5" />
+                                            </div>
+                                            <h3 className="mt-4 font-medium">
+                                                {feature.title}
+                                            </h3>
+                                            <p className="mt-1.5 text-sm text-muted-foreground">
+                                                {feature.body}
+                                            </p>
+                                        </div>
+                                    </Reveal>
+                                ))}
+                            </div>
+                        </Dolly>
                     </section>
 
                     <section id="how" className="scroll-mt-24 pb-28">
                         <Reveal>
-                            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
+                            <p className="text-center text-sm font-medium text-brand">
+                                How it works
+                            </p>
+                            <h2 className="mt-2 text-center text-2xl font-semibold tracking-tight sm:text-4xl">
                                 Set up in two minutes
                             </h2>
                         </Reveal>
-                        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-                            {steps.map(([title, body], i) => (
-                                <Reveal key={title} delay={100 + i * 100}>
-                                    <div className="h-full rounded-2xl glass p-5 text-center">
-                                        <span className="mx-auto flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-soft font-semibold text-white shadow-lg shadow-brand/30">
-                                            {i + 1}
-                                        </span>
-                                        <p className="mt-4 font-medium">
-                                            {title}
-                                        </p>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {body}
-                                        </p>
-                                    </div>
-                                </Reveal>
-                            ))}
-                        </div>
+                        <Dolly className="mx-auto mt-12 max-w-4xl">
+                            <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div
+                                    aria-hidden
+                                    className="absolute top-[2.35rem] right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent sm:block"
+                                />
+                                {steps.map(([title, body], i) => (
+                                    <Reveal key={title} delay={i * 120}>
+                                        <div className="relative h-full rounded-2xl glass p-5 text-center">
+                                            <span className="mx-auto flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-soft font-semibold text-white shadow-lg shadow-brand/30">
+                                                {i + 1}
+                                            </span>
+                                            <p className="mt-4 font-medium">
+                                                {title}
+                                            </p>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {body}
+                                            </p>
+                                        </div>
+                                    </Reveal>
+                                ))}
+                            </div>
+                        </Dolly>
                     </section>
 
                     <Pricing signedIn={Boolean(auth.user)} />
@@ -218,7 +268,7 @@ export default function Welcome() {
                     <Faq />
                 </main>
 
-                <footer className="border-t border-border/50">
+                <footer className="border-t border-border/50 bg-background/40 backdrop-blur-md">
                     <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
                         <div className="flex items-center gap-2">
                             <LogoMark className="size-6" />
@@ -227,21 +277,23 @@ export default function Welcome() {
                             </span>
                         </div>
                         <nav className="flex gap-5">
-                            <a
-                                href="#pricing"
-                                className="hover:text-foreground"
-                            >
-                                Pricing
-                            </a>
-                            <a
-                                href="#security"
-                                className="hover:text-foreground"
-                            >
-                                Security
-                            </a>
-                            <a href="/docs" className="hover:text-foreground">
-                                Docs
-                            </a>
+                            {headerLinks
+                                .filter((link) => link.label !== 'How it works')
+                                .map((link) => (
+                                    <a
+                                        key={link.href}
+                                        href={link.href}
+                                        onClick={(event) => {
+                                            if (link.href.startsWith('#')) {
+                                                event.preventDefault();
+                                                scrollToTarget(link.href);
+                                            }
+                                        }}
+                                        className="transition-colors hover:text-foreground"
+                                    >
+                                        {link.label}
+                                    </a>
+                                ))}
                         </nav>
                     </div>
                 </footer>

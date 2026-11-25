@@ -7,7 +7,7 @@ import {
     KeyRound,
     Lock,
 } from 'lucide-react';
-import { Reveal } from '@/components/preflight/motion';
+import { Dolly, Reveal } from '@/components/preflight/motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { dashboard, login } from '@/routes';
@@ -53,65 +53,72 @@ export function Pricing({ signedIn }: { signedIn: boolean }) {
                     Pro is free while Preflight is in private beta.
                 </p>
             </Reveal>
-            <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
-                {plans.map((plan, i) => (
-                    <Reveal key={plan.name} delay={100 + i * 100}>
-                        <div
-                            className={cn(
-                                'relative flex h-full flex-col rounded-3xl p-6 sm:p-8',
-                                plan.highlight
-                                    ? 'glass-strong shadow-xl ring-2 shadow-brand/10 ring-brand/40'
-                                    : 'glass',
-                            )}
-                        >
-                            {plan.highlight && (
-                                <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-r from-brand to-brand-soft px-3 py-1 text-xs font-medium text-white shadow-md">
-                                    Free during the beta
-                                </span>
-                            )}
-                            <p className="font-medium">{plan.name}</p>
-                            <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
-                                <span className="text-4xl font-semibold tracking-tight">
-                                    {plan.price}
-                                </span>
-                                <span className="text-sm text-muted-foreground">
-                                    {plan.period}
-                                </span>
-                            </p>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                {plan.blurb}
-                            </p>
-                            <ul className="mt-6 flex-1 space-y-2.5 text-sm">
-                                {plan.features.map((feature) => (
-                                    <li key={feature} className="flex gap-2.5">
-                                        <Check className="mt-0.5 size-4 shrink-0 text-brand" />
-                                        {feature}
-                                    </li>
-                                ))}
-                            </ul>
-                            {plan.highlight ? (
-                                <Button asChild className="mt-8 w-full">
-                                    <Link
-                                        href={signedIn ? dashboard() : login()}
+            <Dolly>
+                <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
+                    {plans.map((plan, i) => (
+                        <Reveal key={plan.name} delay={100 + i * 100}>
+                            <div
+                                className={cn(
+                                    'relative flex h-full flex-col rounded-3xl p-6 sm:p-8',
+                                    plan.highlight
+                                        ? 'glass-strong shadow-xl ring-2 shadow-brand/10 ring-brand/40'
+                                        : 'glass',
+                                )}
+                            >
+                                {plan.highlight && (
+                                    <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-r from-brand to-brand-soft px-3 py-1 text-xs font-medium text-white shadow-md">
+                                        Free during the beta
+                                    </span>
+                                )}
+                                <p className="font-medium">{plan.name}</p>
+                                <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
+                                    <span className="text-4xl font-semibold tracking-tight">
+                                        {plan.price}
+                                    </span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {plan.period}
+                                    </span>
+                                </p>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    {plan.blurb}
+                                </p>
+                                <ul className="mt-6 flex-1 space-y-2.5 text-sm">
+                                    {plan.features.map((feature) => (
+                                        <li
+                                            key={feature}
+                                            className="flex gap-2.5"
+                                        >
+                                            <Check className="mt-0.5 size-4 shrink-0 text-brand" />
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {plan.highlight ? (
+                                    <Button asChild className="mt-8 w-full">
+                                        <Link
+                                            href={
+                                                signedIn ? dashboard() : login()
+                                            }
+                                        >
+                                            {signedIn
+                                                ? 'Go to dashboard'
+                                                : 'Join the beta'}
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        className="mt-8 w-full glass"
                                     >
-                                        {signedIn
-                                            ? 'Go to dashboard'
-                                            : 'Join the beta'}
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    className="mt-8 w-full glass"
-                                >
-                                    <a href="/docs">Read the setup guide</a>
-                                </Button>
-                            )}
-                        </div>
-                    </Reveal>
-                ))}
-            </div>
+                                        <a href="/docs">Read the setup guide</a>
+                                    </Button>
+                                )}
+                            </div>
+                        </Reveal>
+                    ))}
+                </div>
+            </Dolly>
         </section>
     );
 }
@@ -147,23 +154,27 @@ export function Security() {
                     Built to be trusted with production
                 </h2>
             </Reveal>
-            <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
-                {assurances.map((item, i) => (
-                    <Reveal key={item.title} delay={100 + i * 80}>
-                        <div className="flex h-full gap-4 rounded-2xl glass p-5">
-                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-brand/20">
-                                <item.icon className="size-5" />
+            <Dolly>
+                <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
+                    {assurances.map((item, i) => (
+                        <Reveal key={item.title} delay={100 + i * 80}>
+                            <div className="flex h-full gap-4 rounded-2xl glass p-5">
+                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-brand/20">
+                                    <item.icon className="size-5" />
+                                </div>
+                                <div>
+                                    <h3 className="font-medium">
+                                        {item.title}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        {item.body}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-medium">{item.title}</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    {item.body}
-                                </p>
-                            </div>
-                        </div>
-                    </Reveal>
-                ))}
-            </div>
+                        </Reveal>
+                    ))}
+                </div>
+            </Dolly>
         </section>
     );
 }
@@ -199,21 +210,23 @@ export function Faq() {
                     Questions
                 </h2>
             </Reveal>
-            <div className="mx-auto mt-10 max-w-3xl space-y-3">
-                {questions.map((item, i) => (
-                    <Reveal key={item.q} delay={80 + i * 60}>
-                        <details className="group rounded-2xl glass px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
-                            <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium">
-                                {item.q}
-                                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
-                            </summary>
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                                {item.a}
-                            </p>
-                        </details>
-                    </Reveal>
-                ))}
-            </div>
+            <Dolly>
+                <div className="mx-auto mt-10 max-w-3xl space-y-3">
+                    {questions.map((item, i) => (
+                        <Reveal key={item.q} delay={80 + i * 60}>
+                            <details className="group rounded-2xl glass px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
+                                <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium">
+                                    {item.q}
+                                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
+                                </summary>
+                                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                                    {item.a}
+                                </p>
+                            </details>
+                        </Reveal>
+                    ))}
+                </div>
+            </Dolly>
         </section>
     );
 }

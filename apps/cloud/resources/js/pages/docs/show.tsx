@@ -1,10 +1,17 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
-import { LogoMark } from '@/components/app-logo';
 import { AmbientBackground, Reveal } from '@/components/preflight/motion';
-import { Button } from '@/components/ui/button';
+import { SiteHeader } from '@/components/preflight/site-header';
+import type { HeaderLink } from '@/components/preflight/site-header';
+import { useSmoothScroll } from '@/hooks/use-cinematic-scroll';
 import { cn } from '@/lib/utils';
-import { dashboard, docs, home, login } from '@/routes';
+import { docs } from '@/routes';
+
+const siteLinks: HeaderLink[] = [
+    { label: 'Product', href: '/' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Docs', href: '/docs' },
+];
 
 type PageLink = { slug: string; title: string };
 
@@ -23,7 +30,7 @@ export default function DocsShow({
     previous: PageLink | null;
     next: PageLink | null;
 }) {
-    const { auth } = usePage().props;
+    useSmoothScroll();
 
     return (
         <>
@@ -31,29 +38,9 @@ export default function DocsShow({
             <div className="relative isolate min-h-svh overflow-x-clip">
                 <AmbientBackground intensity="subtle" />
 
-                <header className="sticky top-0 z-20">
-                    <div className="mx-3 mt-3 flex max-w-6xl items-center justify-between rounded-2xl glass px-4 py-2.5 sm:mx-6 lg:mx-auto">
-                        <Link
-                            href={home()}
-                            className="flex items-center gap-2.5"
-                        >
-                            <LogoMark />
-                            <span className="font-semibold tracking-tight">
-                                Preflight
-                            </span>
-                            <span className="hidden rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground sm:inline">
-                                Docs
-                            </span>
-                        </Link>
-                        <Button asChild size="sm">
-                            <Link href={auth.user ? dashboard() : login()}>
-                                {auth.user ? 'Dashboard' : 'Sign in'}
-                            </Link>
-                        </Button>
-                    </div>
-                </header>
+                <SiteHeader links={siteLinks} badge="Docs" />
 
-                <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:py-14">
+                <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pt-28 pb-12 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:pt-32">
                     <nav
                         aria-label="Documentation"
                         className="lg:sticky lg:top-24 lg:self-start"
