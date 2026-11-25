@@ -92,7 +92,8 @@ export default function DocsShow({
         return () => buttons.forEach((button) => button.remove());
     }, [html]);
 
-    // The section being read: the last heading that has passed 30% of the screen.
+    // The section being read: the last heading that has passed 30% of the screen. Short sections at the
+    // end can't scroll that high, so at the bottom of the page the last section is the one being read.
     useScrollFrame(() => {
         let current: string | null = sections[0]?.id ?? null;
         for (const section of sections) {
@@ -103,6 +104,12 @@ export default function DocsShow({
             ) {
                 current = section.id;
             }
+        }
+        const atBottom =
+            window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 4;
+        if (atBottom && sections.length > 0) {
+            current = sections[sections.length - 1].id;
         }
         setActive((previous) => (previous === current ? previous : current));
     });
