@@ -78,7 +78,9 @@ jobs:
         run: |
           for i in $(seq 1 60); do curl -fs http://127.0.0.1:8080/up > /dev/null && break; sleep 2; done
           docker logs app | tail -30
-          curl -fsS http://127.0.0.1:8080/ | grep -q 'Preflight'
+          curl -fsS http://127.0.0.1:8080/ > home.html
+          grep -q 'welcome' home.html
+          grep -qi '<title[^>]*>[^<]*Preflight' home.html
           curl -fsS http://127.0.0.1:8080/login | grep -q 'auth/login'
           curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/dashboard | grep -q 302
           # The OIDC-protected API refuses requests without a token.

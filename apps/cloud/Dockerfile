@@ -60,6 +60,7 @@ COPY --from=build --chown=www-data:www-data /app/apps/cloud /var/www/app
 
 # Hosts tell the container which port to listen on with $PORT (Render: 10000, Koyeb: 8000).
 ENV PORT=8080 \
+    APP_NAME=Preflight \
     APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
