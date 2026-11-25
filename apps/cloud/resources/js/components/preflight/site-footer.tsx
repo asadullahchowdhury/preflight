@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { LogoMark } from '@/components/app-logo';
 import { GitHubIcon } from '@/components/preflight/bits';
+import { FooterArt } from '@/components/preflight/footer-art';
 import { Reveal } from '@/components/preflight/motion';
 import { scrollToTarget } from '@/hooks/use-cinematic-scroll';
 import { dashboard, docs, login } from '@/routes';
@@ -56,6 +57,7 @@ export function SiteFooter() {
                 aria-hidden
                 className="absolute -top-24 left-1/2 -z-10 h-48 w-[36rem] max-w-full -translate-x-1/2 rounded-full bg-brand/15 blur-3xl"
             />
+            <FooterArt />
 
             <div className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 lg:pt-16">
                 <Reveal className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))]">
