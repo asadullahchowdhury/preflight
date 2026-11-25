@@ -1,5 +1,7 @@
 # How it works
 
+From pull request to verdict: how Preflight rebuilds your schema, captures your migration SQL without running it, and works out how MySQL will execute each statement.
+
 ## What happens on a pull request
 
 1. The GitHub Action starts a throwaway MySQL of your production version.

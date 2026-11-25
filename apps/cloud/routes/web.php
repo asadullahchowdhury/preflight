@@ -9,11 +9,14 @@ use App\Http\Controllers\DocsController;
 use App\Http\Controllers\GitHub\WebhookController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\RepositoryController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WaitlistController;
 use App\Http\Middleware\EnsureBetaAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+Route::get('robots.txt', [SeoController::class, 'robots'])->name('robots');
+Route::get('sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('docs/{page?}', [DocsController::class, 'show'])->where('page', '[a-z0-9-]+')->name('docs');
 
 Route::middleware('guest')->group(function () {

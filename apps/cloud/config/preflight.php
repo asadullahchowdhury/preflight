@@ -48,4 +48,16 @@ return [
     */
     'dev_login' => (bool) env('PREFLIGHT_DEV_LOGIN', false),
 
+    /*
+    | Search and link-preview defaults (resources/views/partials/seo.blade.php). Pages can override the
+    | title, description and canonical path with ->withViewData(['meta' => [...]]).
+    */
+    'seo' => [
+        'tagline' => 'Catch table-locking migrations before they ship',
+        'description' => 'Preflight reviews every Laravel migration in your pull requests and tells you how MySQL will run it: instantly, in place, or by copying the table while writes wait. With production table sizes, duration estimates and a safer rewrite.',
+        'image' => '/og-image.png',
+        // Only these routes are indexed; everything else (the dashboard, settings, admin) is noindex.
+        'indexable_routes' => ['home', 'docs'],
+    ],
+
 ];

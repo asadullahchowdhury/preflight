@@ -39,6 +39,29 @@ class DocsController extends Controller
             'pages' => collect(self::PAGES)->map(fn (string $title, string $slug) => ['slug' => $slug, 'title' => $title])->values(),
             'previous' => $index > 0 ? ['slug' => $slugs[$index - 1], 'title' => self::PAGES[$slugs[$index - 1]]] : null,
             'next' => $index < count($slugs) - 1 ? ['slug' => $slugs[$index + 1], 'title' => self::PAGES[$slugs[$index + 1]]] : null,
-        ]);
+        ])->withViewData(['meta' => [
+            'title' => self::PAGES[$page].' · Docs',
+            'description' => self::summary($markdown),
+            'path' => "docs/{$page}",
+            'type' => 'article',
+            'breadcrumbs' => [
+                ['name' => 'Preflight', 'path' => '/'],
+                ['name' => 'Docs', 'path' => 'docs'],
+                ['name' => self::PAGES[$page], 'path' => "docs/{$page}"],
+            ],
+        ]]);
+    }
+
+    /**
+     * The page's opening paragraph as plain text, for search results and link previews.
+     */
+    public static function summary(string $markdown): string
+    {
+        $paragraph = collect(preg_split('/\R{2,}/', trim($markdown)) ?: [])
+            ->first(fn (string $block) => ! preg_match('/^(#|```|[-*] |\d+\. |\||>)/', ltrim($block)), '');
+
+        $text = preg_replace(['/\[([^\]]+)\]\([^)]*\)/', '/[*_`]+/', '/\s+/'], ['$1', '', ' '], $paragraph);
+
+        return Str::limit(trim((string) $text), 160, '…', preserveWords: true);
     }
 }
